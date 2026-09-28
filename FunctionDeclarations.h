@@ -2,6 +2,8 @@
 #define FUNCTIONDECLARATIONS_H
 
 #include "Laser.h"
+#include "Explosion.h"
+#include "Debris.h"
 
 // Constants and definitions
 #define PLAYER_SPEED		4
@@ -83,7 +85,7 @@ static void doEnemies(void);
 
 void blitRect(SDL_Texture *texture, SDL_Rect *src, int x, int y);
 
-static void doExposions(void);
+static void doExplosions(void);
 
 static void doDebris(void);
 

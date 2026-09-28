@@ -16,6 +16,7 @@ static SDL_Texture *bulletTexture;
 static SDL_Texture *alienBulletTexture;
 static SDL_Texture *enemyTexture;
 static SDL_Texture *playerTexture;
+static SDL_Texture *explosionTexture;
 static int          enemySpawnTimer;
 static int	    stageResetTimer;
 
@@ -161,7 +162,7 @@ void initStage(void)
     dot.delegate.draw = draw;
 
     stage.explosionTail = &stage.explosionHead;
-    stage.debrisTail = *stage.debrisHead;
+    stage.debrisTail = &stage.debrisHead;
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
 
@@ -643,17 +644,17 @@ void blitRect(SDL_Texture *texture, SDL_Rect *src, int x, int y)
 {
 SDL_Rect dest;
 
-dest.x = x
-dest y = y;
+dest.x = x;
+dest.y = y;
 dest.w = src->w;
 dest.h = src->h;
 
-SDL_RenderCopy(dot.renderer, texture, src, dest);
+SDL_RenderCopy(dot.renderer, texture, src, &dest);
 }
 
 static void doExplosions(void)
 {
-Explosion *e. *prev;
+Explosion *e, *prev;
 
 prev = &stage.explosionHead;
 
@@ -752,7 +753,7 @@ static void addExplosions(int x, int y, int num)
 	}
 }
 
-static void addDebris(Entity *e)
+static void addDebris(Laser *e)
 {
 	Debris *d;
 	int     x, y, w, h;
@@ -797,7 +798,7 @@ static void drawExplosions(void)
 {
 	Explosion *e;
 
-	SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_ADD);
+	SDL_SetRenderDrawBlendMode(dot.renderer, SDL_BLENDMODE_ADD);
 	SDL_SetTextureBlendMode(explosionTexture, SDL_BLENDMODE_ADD);
 
 	for (e = stage.explosionHead.next; e != NULL; e = e->next)
@@ -808,7 +809,7 @@ static void drawExplosions(void)
 		blit(explosionTexture, e->x, e->y);
 	}
 
-	SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_NONE);
+	SDL_SetRenderDrawBlendMode(dot.renderer, SDL_BLENDMODE_NONE);
 }
 
 static void capFrameRate(long *then, float *remainder)
