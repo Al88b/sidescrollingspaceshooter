@@ -15,6 +15,8 @@
 #include "Delegate.h"
 #include "Dot.cpp"
 #include "Laser.h"
+#include "Explosion.h"
+#include "Debris.h"
 #include "Stage.h"
 
 int main(int argc, char** args)

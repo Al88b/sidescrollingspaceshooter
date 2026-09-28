@@ -1,5 +1,5 @@
-#ifndef LASER_H
-#define LASER_H
+#ifndef LASER_H_
+#define LASER_H_
 
 class Laser
 {

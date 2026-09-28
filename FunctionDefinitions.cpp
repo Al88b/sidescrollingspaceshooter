@@ -2,6 +2,8 @@
 #include "Dot.cpp"
 #include "Laser.h"
 #include "Stage.h"
+#include "Explosion.h"
+#include "Debris.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
@@ -158,6 +160,8 @@ void initStage(void)
     dot.delegate.logic = logic;
     dot.delegate.draw = draw;
 
+    stage.explosionTail = &stage.explosionHead;
+    stage.debrisTail = *stage.debrisHead;
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
 
@@ -168,16 +172,45 @@ void initStage(void)
     alienBulletTexture = loadTexture("alienBullet.png");
 
     playerTexture = loadTexture("player.png");
+	
+    explosionTexture = loadTexture("explosion.png");
 
     resetStage();
-
 }
+
+static void logic(void)
+{
+std::cout<<"logic"<<std::endl;
+	doPlayer();
+
+	doEnemies();
+
+	doFighters();
+
+	doBullets();
+
+	spawnEnemies();
+
+	clipPlayer();
+
+	if (player == NULL && --stageResetTimer <= 0)
+	{
+		resetStage();
+	}
+
+	doExplosions();
+
+	doDebris();
+}
+
 
 static void initPlayer()
 {
 std::cout<<"initPlayer!"<<std::endl;
     player = new Laser();
+    player->health = 1;
     stage.fighterTail->next = player;
+    player->next = NULL;
     stage.fighterTail = player;
 
     player->x = 100;
@@ -187,75 +220,51 @@ std::cout<<"initPlayer!"<<std::endl;
     player->side = SIDE_PLAYER;
 }
 
-static void logic(void)
-{
-    doPlayer();
-
-    doEnemies();
-
-    doFighters();    
-
-    doBullets();
-
-    spawnEnemies();
-
-    clipPlayer();
-
-	if(player == NULL && --
-stageResetTimer <=0)
-	{
-	resetStage();
-	}
-}
-
 static void doFighters(void)
 {
-std::cout<<"doFighters!"<<std::endl;
-Laser *e, *prev;
+	Laser *e, *prev;
 
-prev = &stage.fighterHead;
+	prev = &stage.fighterHead;
 
-for(e = stage.fighterHead.next ; e != NULL ; e = e->next)
-
-{
-	e->x += e->dx;
-	e->y += e->dy;
-
-	if(e != player && e->x < -e->w)
+	for (e = stage.fighterHead.next; e != NULL; e = e->next)
 	{
-		e->health = 0;
-	}
-	
-	if(e->health == 0)
-	{
-		if(e == player)
-		{
-		player = NULL;
-		}
-	
+		e->x += e->dx;
+		e->y += e->dy;
 
-		if(e == stage.fighterTail)
+		if (e != player && e->x < -e->w)
 		{
-		stage.fighterTail = prev;
+			e->health <= 0;
 		}
 
-		prev->next = e->next;
-		delete e;
-		e = prev;
+		if (e->health == 0)
+		{
+			if (e == player)
+			{
+				player = NULL;
+			}
+
+			if (e == stage.fighterTail)
+			{
+				stage.fighterTail = prev;
+			}
+
+			prev->next = e->next;
+			delete e;
+			e = prev;
+		}
+
+		prev = e;
 	}
-
-	prev = e;
 }
 
-}
 
 static void spawnEnemies(void)
 {
 	Laser *enemy;
-	
-	if(--enemySpawnTimer <= 0)
+
+	if (--enemySpawnTimer <= 0)
 	{
-		enemy = new Laser();
+		enemy = new Laser();;
 		stage.fighterTail->next = enemy;
 		stage.fighterTail = enemy;
 
@@ -265,12 +274,14 @@ static void spawnEnemies(void)
 		SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
 
 		enemy->dx = -(2 + (rand() % 4));
-                enemy->side = SIDE_ALIEN;
-                enemy->health = 1;
+
+		enemy->side = SIDE_ALIEN;
+		enemy->health = 1;
+
 		enemy->reload = FPS * (1 + (rand() % 3));
-		enemySpawnTimer = 30 + (rand() %FPS);
-std::cout<<"spawnEnemies!"<<std::endl;
-}
+
+		enemySpawnTimer = 30 + (rand() % FPS);
+	}
 }
 
 static void drawFighters(void)
@@ -288,49 +299,46 @@ static void drawFighters(void)
 
 static void doPlayer(void)
 {
-std::cout<<"doPlayer!"<<std::endl;
-    if(player != NULL)
-    {
-    player->dx = player->dy = 0;
+std::cout<<"doPlayer"<<std::endl;
+	if (player != NULL)
+	{
+		player->dx = player->dy = 0;
 
-    	if (player->reload > 0)
-    	{
-        player->reload--;
-    	}
+		if (player->reload > 0)
+		{
+			player->reload--;
+		}
 
-    	if (dot.keyboard[SDL_SCANCODE_UP])
-    	{
-        player->dy = -PLAYER_SPEED;
-    	}
+		if (dot.keyboard[SDL_SCANCODE_UP])
+		{
+			player->dy = -PLAYER_SPEED;
+		}
 
-    	if (dot.keyboard[SDL_SCANCODE_DOWN])
-    	{
-        player->dy = PLAYER_SPEED;
-    	}
+		if (dot.keyboard[SDL_SCANCODE_DOWN])
+		{
+			player->dy = PLAYER_SPEED;
+		}
 
-    	if (dot.keyboard[SDL_SCANCODE_LEFT])
-    	{
-        player->dx = -PLAYER_SPEED;
-    	}
+		if (dot.keyboard[SDL_SCANCODE_LEFT])
+		{
+			player->dx = -PLAYER_SPEED;
+		}
 
-    	if (dot.keyboard[SDL_SCANCODE_RIGHT])
-    	{
-        player->dx = PLAYER_SPEED;
-    	}
+		if (dot.keyboard[SDL_SCANCODE_RIGHT])
+		{
+			player->dx = PLAYER_SPEED;
+		}
 
-    	if (dot.keyboard[SDL_SCANCODE_LCTRL] && player->reload <= 0)
-    	{
-        fireBullet();
-	std::cout<<"Ctrl key pressed!"<<std::endl;
-    	}
-
-    }
-
+		if (dot.keyboard[SDL_SCANCODE_LCTRL] && player->reload <= 0)
+		{
+			fireBullet();
+		}
+	}
 }
 
 static void doBullets(void)
 {
-    Laser *b, *prev;
+	Laser *b, *prev;
 
 	prev = &stage.bulletHead;
 
@@ -353,7 +361,6 @@ static void doBullets(void)
 
 		prev = b;
 	}
-
 }
 
 static void fireBullet(void)
@@ -383,6 +390,10 @@ static void draw(void)
     drawBullets();
 
     drawFighters();
+
+    drawDebris();
+
+    drawExplosions();
 }
 
 //static void drawPlayer(void)
@@ -470,6 +481,8 @@ void initSDL(void)
 	dot.renderer = SDL_CreateRenderer(dot.window, -1, rendererFlags);
 
 	IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
+
+	SDL_ShowCursor(0);
 }
 
 int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
@@ -497,94 +510,117 @@ return;
 static void resetStage(void)
 {
 Laser *e;
+Explosion *ex;
+Debris *d;
 
-while(stage.fighterHead.next)
-{
-	e = stage.fighterHead.next;
-	stage.fighterHead.next = e->next;
-	delete e;
-}
+	while (stage.fighterHead.next)
+	{
+		e = stage.fighterHead.next;
+		stage.fighterHead.next = e->next;
+		delete e;
+	}
 
-while(stage.bulletHead.next)
-{
-	e = stage.bulletHead.next;
-	stage.bulletHead.next = e->next;
-	delete e;
-}
+	while (stage.bulletHead.next)
+	{
+		e = stage.bulletHead.next;
+		stage.bulletHead.next = e->next;
+		delete e;
+	}
 
-stage.fighterTail = &stage.fighterHead;
-stage.bulletTail = &stage.bulletHead;
+	stage.fighterTail = &stage.fighterHead;
+	stage.bulletTail = &stage.bulletHead;
 
-initPlayer();
 
-enemySpawnTimer = 0;
+	while (stage.explosionHead.next)
+	{
+	ex = stage.explosionHead.next;
+	stage.explosionHead.next = ex->next;
+	delete ex;
+	}
 
-stageResetTimer = FPS * 2;
+	while(stage.debrisHead.next)
+	{
+	d = stage.debrisHead.next;
+	stage.debrisHead.next = d->next;
+	delete d;
+	}
+
+	stage.explosionTail = &stage.explosionHead;
+	stage.debrisTail = &stage.debrisHead;
+
+        
+	initPlayer();
+
+	enemySpawnTimer = 0;
+
+	stageResetTimer = FPS * 2;
 }
 
 static void doEnemies(void)
 {
 	Laser *e;
-	
-	for(e = stage.fighterHead.next ; e != NULL ; e = e->next)
+
+	for (e = stage.fighterHead.next; e != NULL; e = e->next)
 	{
-	if(e != player && player != NULL && --e->reload <= 0)
-	{
-	fireAlienBullet(e);
+		if (e != player && player != NULL && --e->reload <= 0)
+		{
+			fireAlienBullet(e);
+		}
 	}
-}
 }
 
 static void fireAlienBullet(Laser *e)
 {
-Laser *bullet;
+	Laser *bullet;
 
-bullet = new Laser();
-stage.bulletTail->next = bullet;
-stage.bulletTail = bullet;
+	bullet = new Laser();
+	stage.bulletTail->next = bullet;
+	stage.bulletTail = bullet;
 
-bullet->x = e->x;
-bullet->y = e->y;
-bullet->health = 1;
-bullet->texture = alienBulletTexture;
-bullet->side = SIDE_ALIEN;
-SDL_QueryTexture(bullet->texture, NULL, NULL, &bullet->w, &bullet->h);
+	bullet->x = e->x;
+	bullet->y = e->y;
+	bullet->health = 1;
+	bullet->texture = alienBulletTexture;
+	bullet->side = SIDE_ALIEN;
+	SDL_QueryTexture(bullet->texture, NULL, NULL, &bullet->w, &bullet->h);
 
-bullet->x += (e->w / 2) - (bullet->w / 2);
-bullet->y += (e->h / 2) - (bullet->h / 2);
+	bullet->x += (e->w / 2) - (bullet->w / 2);
+	bullet->y += (e->h / 2) - (bullet->h / 2);
 
-calcSlope(player->x + (player->w / 2), player->y + (player->h / 2), e->x, e->y, &bullet->dx, &bullet->dy);
+	calcSlope(player->x + (player->w / 2), player->y + (player->h / 2), e->x, e->y, &bullet->dx, &bullet->dy);
 
-bullet->dx *= ALIEN_BULLET_SPEED;
-bullet->dy *= ALIEN_BULLET_SPEED;
+	bullet->dx *= ALIEN_BULLET_SPEED;
+	bullet->dy *= ALIEN_BULLET_SPEED;
 
-e->reload = (rand() % FPS * 2);
+	e->reload = (rand() % FPS * 2);
 }
 
 static void clipPlayer(void)
 {
-	if(player != NULL)
+	if (player != NULL)
 	{
-		if(player->x <0)
+		if (player->x < 0)
 		{
-		player->x = 0;
-		}
-		if(player->y < 0)
-		{
-		player->y = 0;
+			player->x = 0;
 		}
 
-		if(player->x > SCREEN_WIDTH / 2)
+		if (player->y < 0)
+		{
+			player->y = 0;
+		}
+
+		if (player->x > SCREEN_WIDTH / 2)
 		{
 			player->x = SCREEN_WIDTH / 2;
 		}
 
-		if(player->y > SCREEN_HEIGHT - player->h)
+		if (player->y > SCREEN_HEIGHT - player->h)
 		{
-		player->y = SCREEN_HEIGHT - player->h;
+			player->y = SCREEN_HEIGHT - player->h;
 		}
+	}
 }
-}
+
 
 void calcSlope(int x1, int y1, int x2, int y2, float *dx, float *dy)
 {
@@ -603,29 +639,200 @@ void calcSlope(int x1, int y1, int x2, int y2, float *dx, float *dy)
 	*dy /= steps;
 }
 
+void blitRect(SDL_Texture *texture, SDL_Rect *src, int x, int y)
+{
+SDL_Rect dest;
+
+dest.x = x
+dest y = y;
+dest.w = src->w;
+dest.h = src->h;
+
+SDL_RenderCopy(dot.renderer, texture, src, dest);
+}
+
+static void doExplosions(void)
+{
+Explosion *e. *prev;
+
+prev = &stage.explosionHead;
+
+for (e = stage.explosionHead.next ; e != NULL ; e = e->next)
+{
+	e->x += e->dx;
+	e->y += e->dy;
+
+	if(--e->a <= 0)
+	{
+		if(e == stage.explosionTail)
+		{
+		stage.explosionTail = prev;
+		}
+
+	prev->next = e->next;
+	delete e;
+	e = prev;
+}
+
+prev = e;
+}
+}
+
+static void doDebris(void)
+{
+Debris *d, *prev;
+
+prev = &stage.debrisHead;
+
+for(d = stage.debrisHead.next ; d != NULL; d = d->next)
+{
+	d->x += d->dx;
+	d->y += d->dy;
+
+	d->dy += 0.5;
+
+if (--d->life <= 0)
+{
+	if(d == stage.debrisTail)
+	{
+		stage.debrisTail = prev;
+	}
+
+	prev->next = d->next;
+	delete d;
+	d = prev;
+}
+prev = d;
+}
+}
+
+static void addExplosions(int x, int y, int num)
+{
+	Explosion *e;
+	int        i;
+
+	for (i = 0; i < num; i++)
+	{
+		e = new Explosion();
+		stage.explosionTail->next = e;
+		stage.explosionTail = e;
+
+		e->x = x + (rand() % 32) - (rand() % 32);
+		e->y = y + (rand() % 32) - (rand() % 32);
+		e->dx = (rand() % 10) - (rand() % 10);
+		e->dy = (rand() % 10) - (rand() % 10);
+
+		e->dx /= 10;
+		e->dy /= 10;
+
+		switch (rand() % 4)
+		{
+			case 0:
+				e->r = 255;
+				break;
+
+			case 1:
+				e->r = 255;
+				e->g = 128;
+				break;
+
+			case 2:
+				e->r = 255;
+				e->g = 255;
+				break;
+
+			default:
+				e->r = 255;
+				e->g = 255;
+				e->b = 255;
+				break;
+		}
+
+		e->a = rand() % FPS * 3;
+	}
+}
+
+static void addDebris(Entity *e)
+{
+	Debris *d;
+	int     x, y, w, h;
+
+	w = e->w / 2;
+	h = e->h / 2;
+
+	for (y = 0; y <= h; y += h)
+	{
+		for (x = 0; x <= w; x += w)
+		{
+			d = new Debris();
+			stage.debrisTail->next = d;
+			stage.debrisTail = d;
+
+			d->x = e->x + e->w / 2;
+			d->y = e->y + e->h / 2;
+			d->dx = (rand() % 5) - (rand() % 5);
+			d->dy = -(5 + (rand() % 12));
+			d->life = FPS * 2;
+			d->texture = e->texture;
+
+			d->rect.x = x;
+			d->rect.y = y;
+			d->rect.w = w;
+			d->rect.h = h;
+		}
+	}
+}
+
+static void drawDebris(void)
+{
+	Debris *d;
+
+	for (d = stage.debrisHead.next; d != NULL; d = d->next)
+	{
+		blitRect(d->texture, &d->rect, d->x, d->y);
+	}
+}
+
+static void drawExplosions(void)
+{
+	Explosion *e;
+
+	SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_ADD);
+	SDL_SetTextureBlendMode(explosionTexture, SDL_BLENDMODE_ADD);
+
+	for (e = stage.explosionHead.next; e != NULL; e = e->next)
+	{
+		SDL_SetTextureColorMod(explosionTexture, e->r, e->g, e->b);
+		SDL_SetTextureAlphaMod(explosionTexture, e->a);
+
+		blit(explosionTexture, e->x, e->y);
+	}
+
+	SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_NONE);
+}
 
 static void capFrameRate(long *then, float *remainder)
 {
-    long wait, frameTime;
+	long wait, frameTime;
 
-    wait = 16 + *remainder;
+	wait = 16 + *remainder;
 
-    *remainder -= (int)*remainder;
+	*remainder -= (int)*remainder;
 
-    frameTime = SDL_GetTicks() - *then;
+	frameTime = SDL_GetTicks() - *then;
 
-    wait -= frameTime;
+	wait -= frameTime;
 
-    if (wait < 1)
-    {
-        wait = 1;
-    }
+	if (wait < 1)
+	{
+		wait = 1;
+	}
 
-    SDL_Delay(wait);
+	SDL_Delay(wait);
 
-    *remainder += 0.667;
+	*remainder += 0.667;
 
-    *then = SDL_GetTicks();
+	*then = SDL_GetTicks();
 }
 
 void cleanup(void)

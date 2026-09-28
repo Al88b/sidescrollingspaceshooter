@@ -81,6 +81,20 @@ static void clipPlayer(void);
 
 static void doEnemies(void);
 
+void blitRect(SDL_Texture *texture, SDL_Rect *src, int x, int y);
+
+static void doExposions(void);
+
+static void doDebris(void);
+
+static void addExplosions(int x, int y, int num);
+
+static void addDebris(Laser *e);
+
+static void drawDebris(void);
+
+static void drawExplosions(void);
+
 //Starts up SDL and creates window
 bool init();
 

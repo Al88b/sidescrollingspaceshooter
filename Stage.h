@@ -1,12 +1,14 @@
-#ifndef STAGE_H
-#define STAGE_H
+#ifndef STAGE_H_
+#define STAGE_H_
 
 class Stage
 {
 public:
 
-    Laser fighterHead, *fighterTail;
-    Laser bulletHead, *bulletTail;
+    	Laser fighterHead, *fighterTail;
+    	Laser bulletHead, *bulletTail;
+	Explosion explosionHead, *explosionTail;
+	Debris debrisHead, *debrisTail;
 };
 
 #endif
