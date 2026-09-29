@@ -4,6 +4,7 @@
 #include "Laser.h"
 #include "Explosion.h"
 #include "Debris.h"
+#include <SDL2/SDL_mixer.h>
 
 // Constants and definitions
 #define PLAYER_SPEED		4
@@ -15,9 +16,26 @@
 #define FPS 60
 #define ALIEN_BULLET_SPEED 8
 #define MAX_KEYBOARD_KEYS	350
+#define MAX_SND_CHANNELS 8
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+
+enum
+{
+CH_ANY = -1,
+CH_PLAYER,
+CH_ALIEN_FIRE
+};
+
+enum
+{
+SND_PLAYER_FIRE,
+SND_ALIEN_FIRE,
+SND_PLAYER_DIE,
+SND_ALIEN_DIE,
+SND_MAX
+};
 
 //Scene textures
 LTexture gDotTexture;
@@ -83,7 +101,7 @@ static void clipPlayer(void);
 
 static void doEnemies(void);
 
-void blitRect(SDL_Texture *texture, SDL_Rect *src, int x, int y);
+void blitRect(SDL_Texture *texture, SDL_Rect *src, int x, int y, bool right);
 
 static void doExplosions(void);
 
@@ -96,6 +114,15 @@ static void addDebris(Laser *e);
 static void drawDebris(void);
 
 static void drawExplosions(void);
+
+void blit(SDL_Texture* texture, int x, int y);
+
+void initSounds(void);
+void loadMusic(char *filename);
+void playMusic(int loop);
+void playSound(int id, int channel);
+
+static void loadSounds(void);
 
 //Starts up SDL and creates window
 bool init();
