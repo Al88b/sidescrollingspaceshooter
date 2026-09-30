@@ -496,9 +496,10 @@ static int bulletHitFighter(Laser *b)
 	{
 		if(e->side != b->side && collision(b->x, b->y, b->w, b->h, e->x, e->y, e->w, e->h))
 		{
-			addExplosions(e->x,e->y,10); 
+ 
 			b->health = 0;
 			e->health = 0;
+			addExplosions(e->x,e->y,32);
 			
 			if(e==player)
 			{
@@ -507,7 +508,7 @@ static int bulletHitFighter(Laser *b)
 			else
 			{
 			playSound(SND_ALIEN_DIE, CH_ANY);
-			stage.score;
+			stage.score++;
 			highscore = MAX(stage.score,highscore);
 			}
 			
@@ -615,8 +616,6 @@ Debris *d;
 		delete e;
 	}
 
-	stage.fighterTail = &stage.fighterHead;
-	stage.bulletTail = &stage.bulletHead;
 
 
 	while (stage.explosionHead.next)
@@ -633,17 +632,19 @@ Debris *d;
 	delete d;
 	}
 
-	stage.explosionTail = &stage.explosionHead;
+	stage.fighterTail = &stage.fighterHead;
+	stage.bulletTail = &stage.bulletHead;
+        stage.explosionTail = &stage.explosionHead;
 	stage.debrisTail = &stage.debrisHead;
 
-      
+	stage.score = 0;
+	
 	initPlayer();
 
 	enemySpawnTimer = 0;
 
 	stageResetTimer = FPS * 2;
 
-	stage.score = 0;
 }
 
 static void doEnemies(void)
@@ -946,7 +947,7 @@ rect.x = (c - ' ') * GLYPH_WIDTH;
 
 blitRect(fontTexture, &rect, x, y);
 
-x -= GLYPH_WIDTH;
+x += GLYPH_WIDTH;
 }
 }
 }
@@ -957,11 +958,11 @@ drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
 
 if(stage.score > 0 && stage.score == highscore)
 {
-drawText(960, 10, 0, 255, 0, "HIGHSCORE: &03d", highscore);
+drawText(1020, 10, 0, 255, 0, "HIGHSCORE: &03d", highscore);
 }
 else
 {
-drawText(960, 10, 255, 255, 255, "HIGHSCORE: &03d", highscore);
+drawText(1020, 10, 0, 255, 255, "HIGHSCORE: &03d", highscore);
 }
 
 }
