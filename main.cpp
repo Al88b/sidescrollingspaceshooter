@@ -34,6 +34,9 @@ if(!init())
 printf("Failed to initialize!\n");
 }
 
+initSounds();
+initFonts();
+
 //Load media
 if(!loadMedia())
 {

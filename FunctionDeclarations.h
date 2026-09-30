@@ -17,9 +17,12 @@
 #define ALIEN_BULLET_SPEED 8
 #define MAX_KEYBOARD_KEYS	350
 #define MAX_SND_CHANNELS 8
+#define MAX_LINE_LENGTH 1024
+#define GLYPH_HEIGHT 28
+#define GLYPH_WIDTH  18
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 800;
+const int SCREEN_HEIGHT = 600;
 
 enum
 {
@@ -123,6 +126,16 @@ void playMusic(int loop);
 void playSound(int id, int channel);
 
 static void loadSounds(void);
+
+static Mix_Music *music;
+
+static Mix_Chunk *sounds[SND_MAX];
+
+void initFonts(void);
+
+void drawText(int x, int y, int r, int g, int b, char *format, ...);
+
+static void drawHud(void);
 
 //Starts up SDL and creates window
 bool init();

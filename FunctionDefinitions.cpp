@@ -6,7 +6,9 @@
 #include "Debris.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 #include <iostream>
+#include <stdbool.h>
 Dot dot;
 Laser laser;
 Stage stage;
@@ -17,8 +19,13 @@ static SDL_Texture *alienBulletTexture;
 static SDL_Texture *enemyTexture;
 static SDL_Texture *playerTexture;
 static SDL_Texture *explosionTexture;
+static SDL_Texture *fontTexture;
+static char         drawTextBuffer[MAX_LINE_LENGTH];
 static int          enemySpawnTimer;
 static int	    stageResetTimer;
+static int          highscore;
+
+bool right;
 
 bool init()
 {
@@ -71,8 +78,53 @@ else
 	}
 }
 
+if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
+{
+	printf("Couldn't initialize SDL Mixer\n");
+exit(1);
+}
+Mix_AllocateChannels(MAX_SND_CHANNELS);
+
 return success;
 
+}
+
+void initSounds(void)
+{
+memset(sounds, 0, sizeof(Mix_Chunk*) * SND_MAX);
+music = NULL;
+
+loadSounds();
+}
+
+static void loadSounds(void)
+{
+sounds[SND_PLAYER_FIRE] = Mix_LoadWAV("334227__jradcoolness__laser.ogg");
+sounds[SND_ALIEN_FIRE] = Mix_LoadWAV("196914__dpoggioli__lasergun.ogg");
+sounds[SND_PLAYER_DIE] = Mix_LoadWAV("245372__quaker540__hq-explosion.ogg");
+sounds[SND_ALIEN_DIE] = Mix_LoadWAV("10 Guage Shotgun-SoundBible.com-74120584.ogg");
+}
+
+void loadMusic(char *filename)
+{
+if(music != NULL)
+{
+Mix_HaltMusic();
+Mix_FreeMusic(music);
+music = NULL;
+}
+
+music = Mix_LoadMUS(filename);
+}
+
+void playMusic(int loop)
+{
+Mix_PlayMusic(music, (loop) ? -1 : 0);
+}
+
+void playSound(int id, int channel)
+{
+Mix_PlayChannel(channel, sounds[id], 0);
 }
 
 bool loadMedia()
@@ -142,6 +194,26 @@ SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h);
 
 SDL_RenderCopy(gRenderer, texture, NULL, &dest);
 
+}
+
+void blitAlienBullets(SDL_Texture* texture, int x, int y)
+{
+
+std::cout<<"Blit"<<std::endl;
+SDL_Rect dest;
+
+dest.x = x;
+dest.y = y;
+SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h);
+
+if(right==false)
+{
+SDL_RenderCopyEx(gRenderer, texture, NULL, &dest, 0.0, NULL, SDL_FLIP_NONE);
+}
+else
+{
+SDL_RenderCopyEx(gRenderer, texture, NULL, &dest, 0.0, NULL, SDL_FLIP_HORIZONTAL);
+}
 }
 
 SDL_Texture* loadTexture(const char* filename)
@@ -333,6 +405,7 @@ std::cout<<"doPlayer"<<std::endl;
 		if (dot.keyboard[SDL_SCANCODE_LCTRL] && player->reload <= 0)
 		{
 			fireBullet();
+			playSound(SND_PLAYER_FIRE, CH_PLAYER);
 		}
 	}
 }
@@ -395,6 +468,8 @@ static void draw(void)
     drawDebris();
 
     drawExplosions();
+
+    drawHud();
 }
 
 //static void drawPlayer(void)
@@ -409,7 +484,7 @@ static void drawBullets(void)
 
     for (b = stage.bulletHead.next ; b != NULL ; b = b->next)
     {
-        blit(b->texture, b->x, b->y);
+        blitAlienBullets(b->texture, b->x, b->y);
     }
 }
 
@@ -421,8 +496,20 @@ static int bulletHitFighter(Laser *b)
 	{
 		if(e->side != b->side && collision(b->x, b->y, b->w, b->h, e->x, e->y, e->w, e->h))
 		{
+			addExplosions(e->x,e->y,10); 
 			b->health = 0;
 			e->health = 0;
+			
+			if(e==player)
+			{
+			playSound(SND_PLAYER_DIE, CH_PLAYER);
+			}
+			else
+			{
+			playSound(SND_ALIEN_DIE, CH_ANY);
+			stage.score;
+			highscore = MAX(stage.score,highscore);
+			}
 			
 			return 1;
 		}
@@ -549,12 +636,14 @@ Debris *d;
 	stage.explosionTail = &stage.explosionHead;
 	stage.debrisTail = &stage.debrisHead;
 
-        
+      
 	initPlayer();
 
 	enemySpawnTimer = 0;
 
 	stageResetTimer = FPS * 2;
+
+	stage.score = 0;
 }
 
 static void doEnemies(void)
@@ -566,6 +655,7 @@ static void doEnemies(void)
 		if (e != player && player != NULL && --e->reload <= 0)
 		{
 			fireAlienBullet(e);
+			playSound(SND_PLAYER_FIRE, CH_PLAYER);
 		}
 	}
 }
@@ -594,6 +684,15 @@ static void fireAlienBullet(Laser *e)
 	bullet->dy *= ALIEN_BULLET_SPEED;
 
 	e->reload = (rand() % FPS * 2);
+
+	if(bullet->dx>=1)
+	{
+	right=true;
+	}
+	else
+	{
+	right=false;
+	}
 }
 
 static void clipPlayer(void)
@@ -649,9 +748,9 @@ dest.y = y;
 dest.w = src->w;
 dest.h = src->h;
 
-SDL_RenderCopy(dot.renderer, texture, src, &dest);
-}
+SDL_RenderCopy(gRenderer, texture, NULL, &dest);
 
+}
 static void doExplosions(void)
 {
 Explosion *e, *prev;
@@ -812,6 +911,60 @@ static void drawExplosions(void)
 	SDL_SetRenderDrawBlendMode(dot.renderer, SDL_BLENDMODE_NONE);
 }
 
+void initFonts(void)
+{
+fontTexture = loadTexture("font.png");
+}
+
+void drawText(int x, int y, int r, int g, int b, char* format, ...)
+{
+int i, len, c;
+SDL_Rect rect;
+va_list args;
+
+memset(&drawTextBuffer, '\0', sizeof(drawTextBuffer));
+
+va_start(args, format);
+vsprintf(drawTextBuffer, format, args);
+va_end(args);
+
+len = strlen(drawTextBuffer);
+
+rect.w = GLYPH_WIDTH;
+rect.h = GLYPH_HEIGHT;
+rect.y = 0;
+
+SDL_SetTextureColorMod(fontTexture, r, g, b);
+
+for(i = 0; i < len ; i++)
+{
+c = drawTextBuffer[i];
+
+if(c >= ' ' && c <= 'Z')
+{
+rect.x = (c - ' ') * GLYPH_WIDTH;
+
+blitRect(fontTexture, &rect, x, y);
+
+x -= GLYPH_WIDTH;
+}
+}
+}
+
+static void drawHud(void)
+{
+drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
+
+if(stage.score > 0 && stage.score == highscore)
+{
+drawText(960, 10, 0, 255, 0, "HIGHSCORE: &03d", highscore);
+}
+else
+{
+drawText(960, 10, 255, 255, 255, "HIGHSCORE: &03d", highscore);
+}
+
+}
 static void capFrameRate(long *then, float *remainder)
 {
 	long wait, frameTime;
