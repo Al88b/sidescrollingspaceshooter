@@ -28,12 +28,6 @@ if(!init())
 printf("Failed to initialize!\n");
 }
 
-//Start up SDL and create window
-if(!init())
-{
-printf("Failed to initialize!\n");
-}
-
 initSounds();
 initFonts();
 

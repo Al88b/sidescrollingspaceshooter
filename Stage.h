@@ -9,6 +9,7 @@ public:
     	Laser bulletHead, *bulletTail;
 	Explosion explosionHead, *explosionTail;
 	Debris debrisHead, *debrisTail;
+	Laser pointsHead, *pointsTail;
 	int score;
 };
 

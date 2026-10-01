@@ -9,6 +9,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <iostream>
 #include <stdbool.h>
+
 Dot dot;
 Laser laser;
 Stage stage;
@@ -20,6 +21,7 @@ static SDL_Texture *enemyTexture;
 static SDL_Texture *playerTexture;
 static SDL_Texture *explosionTexture;
 static SDL_Texture *fontTexture;
+static SDL_Texture *pointsTexture;
 static char         drawTextBuffer[MAX_LINE_LENGTH];
 static int          enemySpawnTimer;
 static int	    stageResetTimer;
@@ -103,6 +105,7 @@ sounds[SND_PLAYER_FIRE] = Mix_LoadWAV("334227__jradcoolness__laser.ogg");
 sounds[SND_ALIEN_FIRE] = Mix_LoadWAV("196914__dpoggioli__lasergun.ogg");
 sounds[SND_PLAYER_DIE] = Mix_LoadWAV("245372__quaker540__hq-explosion.ogg");
 sounds[SND_ALIEN_DIE] = Mix_LoadWAV("10 Guage Shotgun-SoundBible.com-74120584.ogg");
+sounds[SND_POINTS] = Mix_LoadWAV("342749__rhodesmas__notification__01.ogg");
 }
 
 void loadMusic(char *filename)
@@ -248,6 +251,8 @@ void initStage(void)
 	
     explosionTexture = loadTexture("explosion.png");
 
+    pointsTexture = loadTexture("points.png");
+
     resetStage();
 }
 
@@ -274,6 +279,8 @@ std::cout<<"logic"<<std::endl;
 	doExplosions();
 
 	doDebris();
+
+	doPointsPods();
 }
 
 
@@ -470,6 +477,8 @@ static void draw(void)
     drawExplosions();
 
     drawHud();
+
+    drawPointsPods();
 }
 
 //static void drawPlayer(void)
@@ -510,6 +519,16 @@ static int bulletHitFighter(Laser *b)
 			playSound(SND_ALIEN_DIE, CH_ANY);
 			stage.score++;
 			highscore = MAX(stage.score,highscore);
+			}
+
+			if(e == player)
+			{
+			playSound(SND_PLAYER_DIE, CH_PLAYER);
+			}
+			else
+			{
+			addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+			playSound(SND_ALIEN_DIE, CH_ANY);
 			}
 			
 			return 1;
@@ -632,10 +651,18 @@ Debris *d;
 	delete d;
 	}
 
+	while(stage.pointsHead.next)
+	{
+	e = stage.pointsHead.next;
+	stage.pointsHead.next = e->next;
+	delete e;
+	}
+
 	stage.fighterTail = &stage.fighterHead;
 	stage.bulletTail = &stage.bulletHead;
         stage.explosionTail = &stage.explosionHead;
 	stage.debrisTail = &stage.debrisHead;
+	stage.pointsTail = &stage.pointsHead;
 
 	stage.score = 0;
 	
@@ -749,7 +776,7 @@ dest.y = y;
 dest.w = src->w;
 dest.h = src->h;
 
-SDL_RenderCopy(gRenderer, texture, NULL, &dest);
+SDL_RenderCopy(gRenderer, texture, src, &dest);
 
 }
 static void doExplosions(void)
@@ -966,6 +993,100 @@ drawText(1020, 10, 0, 255, 255, "HIGHSCORE: &03d", highscore);
 }
 
 }
+
+static void doPointsPods(void)
+{
+	Laser *e, *prev;
+
+	prev = &stage.pointsHead;
+
+	for (e = stage.pointsHead.next; e != NULL; e = e->next)
+	{
+		if (e->x < 0)
+		{
+			e->x = 0;
+			e->dx = -e->dx;
+		}
+
+		if (e->x + e->w > SCREEN_WIDTH)
+		{
+			e->x = SCREEN_WIDTH - e->w;
+			e->dx = -e->dx;
+		}
+
+		if (e->y < 0)
+		{
+			e->y = 0;
+			e->dy = -e->dy;
+		}
+
+		if (e->y + e->h > SCREEN_HEIGHT)
+		{
+			e->y = SCREEN_HEIGHT - e->h;
+			e->dy = -e->dy;
+		}
+
+		e->x += e->dx;
+		e->y += e->dy;
+
+		if (player != NULL && collision(e->x, e->y, e->w, e->h, player->x, player->y, player->w, player->h))
+		{
+			e->health = 0;
+
+			stage.score++;
+
+			highscore = MAX(stage.score, highscore);
+
+			playSound(SND_POINTS, CH_POINTS);
+		}
+
+		if (--e->health <= 0)
+		{
+			if (e == stage.pointsTail)
+			{
+				stage.pointsTail = prev;
+			}
+
+			prev->next = e->next;
+			free(e);
+			e = prev;
+		}
+
+		prev = e;
+	}
+}
+
+static void addPointsPod(int x, int y)
+{
+	Laser *e;
+
+	e = new Laser();
+	stage.pointsTail->next = e;
+	stage.pointsTail = e;
+
+	e->x = x;
+	e->y = y;
+	e->dx = -(rand() % 5);
+	e->dy = (rand() % 5) - (rand() % 5);
+	e->health = FPS * 10;
+	e->texture = pointsTexture;
+
+	SDL_QueryTexture(e->texture, NULL, NULL, &e->w, &e->h);
+
+	e->x -= e->w / 2;
+	e->y -= e->h / 2;
+}
+
+static void drawPointsPods(void)
+{
+	Laser *e;
+
+	for (e = stage.pointsHead.next; e != NULL; e = e->next)
+	{
+		blit(e->texture, e->x, e->y);
+	}
+}
+
 static void capFrameRate(long *then, float *remainder)
 {
 	long wait, frameTime;

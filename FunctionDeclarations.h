@@ -21,14 +21,15 @@
 #define GLYPH_HEIGHT 28
 #define GLYPH_WIDTH  18
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 480;
 
 enum
 {
 CH_ANY = -1,
 CH_PLAYER,
-CH_ALIEN_FIRE
+CH_ALIEN_FIRE,
+CH_POINTS
 };
 
 enum
@@ -37,7 +38,8 @@ SND_PLAYER_FIRE,
 SND_ALIEN_FIRE,
 SND_PLAYER_DIE,
 SND_ALIEN_DIE,
-SND_MAX
+SND_MAX,
+SND_POINTS
 };
 
 //Scene textures
@@ -136,6 +138,12 @@ void initFonts(void);
 void drawText(int x, int y, int r, int g, int b, char *format, ...);
 
 static void drawHud(void);
+
+static void doPointsPods(void);
+
+static void drawPointsPods(void);
+
+static void addPointsPod(int x, int y);
 
 //Starts up SDL and creates window
 bool init();
