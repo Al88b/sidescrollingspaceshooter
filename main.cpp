@@ -30,6 +30,7 @@ printf("Failed to initialize!\n");
 
 initHighScores();
 initGame();
+initHighScores();
 
 //Load media
 if(!loadMedia())

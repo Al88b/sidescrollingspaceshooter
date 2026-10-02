@@ -17,6 +17,7 @@ Dot dot;
 Laser laser;
 Stage stage;
 Highscores highscores;
+
 static Laser      *player;
 static SDL_Texture *bulletTexture;
 static SDL_Texture *alienBulletTexture;
@@ -257,6 +258,13 @@ void initStage(void)
     pointsTexture = loadTexture("points.png");
 
     resetStage();
+
+    stage.score = 0;
+
+    initPlayer();
+
+    enemySpawnTimer = 0;
+
 }
 
 static void logic(void)
@@ -284,6 +292,11 @@ std::cout<<"logic"<<std::endl;
 	doDebris();
 
 	doPointsPods();
+
+	if(dot.keyboard[SDL_SCANCODE_LCTRL])
+	{
+	initStage();
+	}
 }
 
 
@@ -482,6 +495,8 @@ static void draw(void)
     drawHud();
 
     drawPointsPods();
+
+    drawHighscores();
 }
 
 //static void drawPlayer(void)
@@ -1100,6 +1115,8 @@ void initHighScoreTable(void)
 {
 int i;
 
+memset(&highscores,0,sizeof(Highscores));
+
 for(i= 0; i < NUM_HIGHSCORES; i++)
 {
 highscores.highscore[i].score = NUM_HIGHSCORES - i;
@@ -1115,6 +1132,32 @@ initHighScoreTable();
 loadMusic("Mercury.ogg");
 playMusic(1);
 }
+
+static void drawHighscores(void)
+{
+    int i, y;
+
+    y = 150;
+
+    drawText(425, 70, 255, 255, 255, "HIGHSCORES");
+
+    for (i = 0 ; i < NUM_HIGHSCORES ; i++)
+    {
+        if (highscores.highscore[i].recent)
+        {
+            drawText(425, y, 255, 255, 0, "#%d ............. %03d", (i + 1), highscores.highscore[i].score);
+        }
+        else
+        {
+            drawText(425, y, 255, 255, 255, "#%d ............. %03d", (i + 1), highscores.highscore[i].score);
+        }
+
+        y += 50;
+    }
+
+    drawText(425, 600, 255, 255, 255, "PRESS FIRE TO PLAY!");
+}
+
 
 static void capFrameRate(long *then, float *remainder)
 {
