@@ -20,6 +20,11 @@
 #define MAX_LINE_LENGTH 1024
 #define GLYPH_HEIGHT 28
 #define GLYPH_WIDTH  18
+#define NUM_HIGHSCORES 8
+#define STRNCPY(dest, src, n) \
+	strncpy(dest, src, n);    \
+	dest[n - 1] = '\0'
+#define MAX_NAME_LENGTH 32
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -38,8 +43,8 @@ SND_PLAYER_FIRE,
 SND_ALIEN_FIRE,
 SND_PLAYER_DIE,
 SND_ALIEN_DIE,
-SND_MAX,
-SND_POINTS
+SND_POINTS,
+SND_MAX
 };
 
 //Scene textures
@@ -144,6 +149,24 @@ static void doPointsPods(void);
 static void drawPointsPods(void);
 
 static void addPointsPod(int x, int y);
+
+void initHighScoreTable(void);
+
+void initHighScores(void);
+
+static void drawHighscores(void);
+
+void addHighscore(int score);
+
+static void highScoreComparator(const void *a, const void *b);
+
+void initGame(void);
+
+SDL_Texture *loadTexture(char *filename);
+
+void initHighScores(void);
+
+void initHighScoreTable(void);
 
 //Starts up SDL and creates window
 bool init();

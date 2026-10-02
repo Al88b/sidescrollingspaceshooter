@@ -4,16 +4,19 @@
 #include "Stage.h"
 #include "Explosion.h"
 #include "Debris.h"
+#include "Highscores.h"
+#include "Texture.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <iostream>
 #include <stdbool.h>
+#include <cstdlib>
 
 Dot dot;
 Laser laser;
 Stage stage;
-
+Highscores highscores;
 static Laser      *player;
 static SDL_Texture *bulletTexture;
 static SDL_Texture *alienBulletTexture;
@@ -105,7 +108,7 @@ sounds[SND_PLAYER_FIRE] = Mix_LoadWAV("334227__jradcoolness__laser.ogg");
 sounds[SND_ALIEN_FIRE] = Mix_LoadWAV("196914__dpoggioli__lasergun.ogg");
 sounds[SND_PLAYER_DIE] = Mix_LoadWAV("245372__quaker540__hq-explosion.ogg");
 sounds[SND_ALIEN_DIE] = Mix_LoadWAV("10 Guage Shotgun-SoundBible.com-74120584.ogg");
-sounds[SND_POINTS] = Mix_LoadWAV("342749__rhodesmas__notification__01.ogg");
+sounds[SND_POINTS] = Mix_LoadWAV("powerUpSound.ogg");
 }
 
 void loadMusic(char *filename)
@@ -1085,6 +1088,32 @@ static void drawPointsPods(void)
 	{
 		blit(e->texture, e->x, e->y);
 	}
+}
+
+void initHighScores(void)
+{
+dot.delegate.logic = logic;
+dot.delegate.draw = draw;
+}
+
+void initHighScoreTable(void)
+{
+int i;
+
+for(i= 0; i < NUM_HIGHSCORES; i++)
+{
+highscores.highscore[i].score = NUM_HIGHSCORES - i;
+}
+
+}
+
+void initGame(void)
+{
+initSounds();
+initFonts();
+initHighScoreTable();
+loadMusic("Mercury.ogg");
+playMusic(1);
 }
 
 static void capFrameRate(long *then, float *remainder)

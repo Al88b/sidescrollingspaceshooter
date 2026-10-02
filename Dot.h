@@ -2,6 +2,7 @@
 #define DOT_H
 #include "FunctionDeclarations.h"
 #include "Delegate.h"
+#include "Texture.h"
 
 //The dot that will move around on the screen
 class Dot
@@ -37,6 +38,8 @@ SDL_Renderer* renderer;
 SDL_Window* window;
 
 SDL_Texture* texture;
+	
+Texture       textureHead, *textureTail;
 
 int x;
 int y;

@@ -2,6 +2,7 @@
 #define DOT_CPP
 
 #include "Dot.h"
+#include "FunctionDeclarations.h"
 
 Dot::Dot()
 {

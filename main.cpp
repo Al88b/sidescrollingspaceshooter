@@ -28,8 +28,8 @@ if(!init())
 printf("Failed to initialize!\n");
 }
 
-initSounds();
-initFonts();
+initHighScores();
+initGame();
 
 //Load media
 if(!loadMedia())
