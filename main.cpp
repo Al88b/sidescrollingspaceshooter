@@ -28,7 +28,6 @@ if(!init())
 printf("Failed to initialize!\n");
 }
 
-initHighScores();
 initGame();
 initHighScores();
 
