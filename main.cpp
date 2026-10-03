@@ -79,7 +79,6 @@ while (myGameState == GAMESCREEN)
 
 			}
 
-
 			//Move the dot
 			//dot.move();
 
@@ -103,23 +102,21 @@ while (myGameState == GAMESCREEN)
 
 			dot.x += dot.dx;
 			dot.y += dot.dy;
-
 			
         prepareScene();
 
         dot.delegate.logic();
 
         dot.delegate.draw();	
-
-        presentScene();
+        
+	presentScene();
 
         capFrameRate(&then, &remainder);
 
-			//Update screen
+
+		//Update screen
 			SDL_RenderPresent(gRenderer);
 	
-
-
 }
 }
 

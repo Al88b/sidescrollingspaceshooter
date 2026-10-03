@@ -30,6 +30,8 @@ static int          enemySpawnTimer;
 static int	    stageResetTimer;
 static int          highscore;
 
+int lives = 5;
+
 bool right;
 
 bool init()
@@ -191,7 +193,7 @@ dot.keyboard[event->keysym.scancode] = 1;
 void blit(SDL_Texture* texture, int x, int y)
 {
 
-std::cout<<"Blit"<<std::endl;
+//std::cout<<"Blit"<<std::endl;
 SDL_Rect dest;
 
 dest.x = x;
@@ -205,7 +207,7 @@ SDL_RenderCopy(gRenderer, texture, NULL, &dest);
 void blitAlienBullets(SDL_Texture* texture, int x, int y)
 {
 
-std::cout<<"Blit"<<std::endl;
+//std::cout<<"Blit"<<std::endl;
 SDL_Rect dest;
 
 dest.x = x;
@@ -226,7 +228,7 @@ SDL_Texture* loadTexture(const char* filename)
 {
 SDL_Texture* texture;
 
-SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename);
+//SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename);
 
 texture = IMG_LoadTexture(gRenderer, filename);
 
@@ -261,7 +263,7 @@ void initStage(void)
 
 static void logic(void)
 {
-std::cout<<"logic"<<std::endl;
+//std::cout<<"logic"<<std::endl;
 	doPlayer();
 
 	doEnemies();
@@ -289,7 +291,7 @@ std::cout<<"logic"<<std::endl;
 
 static void initPlayer()
 {
-std::cout<<"initPlayer!"<<std::endl;
+//std::cout<<"initPlayer!"<<std::endl;
     player = new Laser();
     player->health = 1;
     stage.fighterTail->next = player;
@@ -370,19 +372,19 @@ static void spawnEnemies(void)
 static void drawFighters(void)
 {
 	
-	std::cout<<"drawFighters!"<<std::endl;
+	//std::cout<<"drawFighters!"<<std::endl;
 	Laser *e;
 
 	for(e = stage.fighterHead.next ; e != NULL ; e = e->next)
 	{
 	blit(e->texture, e->x, e->y);
-	std::cout<<"for loop drawFighters!"<<std::endl;
+	//std::cout<<"for loop drawFighters!"<<std::endl;
 	}
 }
 
 static void doPlayer(void)
 {
-std::cout<<"doPlayer"<<std::endl;
+//std::cout<<"doPlayer"<<std::endl;
 	if (player != NULL)
 	{
 		player->dx = player->dy = 0;
@@ -450,7 +452,7 @@ static void doBullets(void)
 
 static void fireBullet(void)
 {
-std::cout<<"fireBullet"<<std::endl;
+//std::cout<<"fireBullet"<<std::endl;
 Laser *bullet = new Laser();
 
 stage.bulletTail->next=bullet;
@@ -492,7 +494,7 @@ static void draw(void)
 
 static void drawBullets(void)
 {
-    std::cout<<"drawBullets"<<std::endl;
+    //std::cout<<"drawBullets"<<std::endl;
     Laser *b;
 
     for (b = stage.bulletHead.next ; b != NULL ; b = b->next)
@@ -503,7 +505,7 @@ static void drawBullets(void)
 
 static int bulletHitFighter(Laser *b)
 {
-std::cout<<"bulletHitFighter!"<<std::endl;
+//std::cout<<"bulletHitFighter!"<<std::endl;
 	Laser * e;
 
 	for(e = stage.fighterHead.next ; e != NULL ; e = e->next)
@@ -519,8 +521,8 @@ std::cout<<"bulletHitFighter!"<<std::endl;
 			{
 			playSound(SND_PLAYER_DIE, CH_PLAYER);
 
-			player->lives--;
-			std::cout<<"Lives = "<<player->lives<<std::endl;
+			lives--;
+			std::cout<<"Lives = "<<lives<<std::endl;
 			}
 			else
 			{
@@ -530,7 +532,11 @@ std::cout<<"bulletHitFighter!"<<std::endl;
 			highscore = MAX(stage.score,highscore);
 			}
 			return 1;
-		}
+			if(lives<=0)
+			{
+			myGameState==HIGHSCORESCREEN;
+			}
+}
 	}
 return 0;
 }
@@ -551,7 +557,7 @@ SDL_Texture *loadTexture(char *filename)
 {
 	SDL_Texture *texture;
 
-	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename);
+	//SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename);
 
 	texture = IMG_LoadTexture(dot.renderer, filename);
 if(IMG_LoadTexture == 0)
