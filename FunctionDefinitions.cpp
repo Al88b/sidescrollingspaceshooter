@@ -503,6 +503,7 @@ static void drawBullets(void)
 
 static int bulletHitFighter(Laser *b)
 {
+std::cout<<"bulletHitFighter!"<<std::endl;
 	Laser * e;
 
 	for(e = stage.fighterHead.next ; e != NULL ; e = e->next)
