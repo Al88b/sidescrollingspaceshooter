@@ -26,8 +26,8 @@
 	dest[n - 1] = '\0'
 #define MAX_NAME_LENGTH 32
 
-#define SCREEN_WIDTH  1280
-#define SCREEN_HEIGHT 720
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 480;
 
 enum
 {
@@ -46,6 +46,15 @@ SND_ALIEN_DIE,
 SND_POINTS,
 SND_MAX
 };
+
+enum gameState
+{
+GAMESCREEN,
+HIGHSCORESCREEN,
+QUIT
+};
+
+enum gameState myGameState;
 
 //Scene textures
 LTexture gDotTexture;

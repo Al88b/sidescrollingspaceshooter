@@ -28,8 +28,8 @@ if(!init())
 printf("Failed to initialize!\n");
 }
 
-initGame();
-initHighScores();
+initSounds();
+initFonts();
 
 //Load media
 if(!loadMedia())
@@ -37,11 +37,17 @@ if(!loadMedia())
 printf("Failed to load media!\n");
 }
 
-//Main loop flag
-bool quit = false;
-
     long then;
     float remainder;
+
+		//Event handler
+		SDL_Event e;
+
+myGameState = GAMESCREEN;
+
+if(myGameState == GAMESCREEN)
+{
+
 
     atexit(cleanup);
 
@@ -51,25 +57,21 @@ bool quit = false;
 
     remainder = 0;
 
-		//Event handler
-		SDL_Event e;
 
-
+while (myGameState == GAMESCREEN)
+{
 		//The background scrolling offset
 		int scrollingOffset = 0;
 
 		laser.texture = loadTexture("playerLaser.png");
 
-		//While application is running
-		while(!quit)
-		{
 			//Handle events on queue
 			while(SDL_PollEvent(&e) != 0)
 			{
 				//User requests quit
 				if(e.type == SDL_QUIT)
 				{
-					quit = true;
+					myGameState = QUIT;
 				}
 
 				//Handle input for the dot
@@ -115,15 +117,24 @@ bool quit = false;
 
 			//Update screen
 			SDL_RenderPresent(gRenderer);
-
-		}
 	
 
 
-//Free resources and close SDL
-close();
+}
+}
 
-return 0;
+else if(myGameState == HIGHSCORESCREEN)
+{
+std::cout<<"Run highscorescreen here!"<<std::endl;
+}
+
+else
+{
+
+//Free resources and close SDL
+
+close();
 
 }
 
+}

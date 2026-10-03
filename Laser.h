@@ -16,6 +16,7 @@ int reload;
 int side;
 SDL_Texture* texture;
 Laser *next;
+int lives = 5;
 };
 
 #endif
