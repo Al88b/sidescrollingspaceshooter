@@ -28,8 +28,8 @@ if(!init())
 printf("Failed to initialize!\n");
 }
 
-initSounds();
-initFonts();
+initHighScores();
+initGame();
 
 //Load media
 if(!loadMedia())
@@ -37,17 +37,11 @@ if(!loadMedia())
 printf("Failed to load media!\n");
 }
 
+//Main loop flag
+bool quit = false;
+
     long then;
     float remainder;
-
-		//Event handler
-		SDL_Event e;
-
-myGameState = GAMESCREEN;
-
-if(myGameState == GAMESCREEN)
-{
-
 
     atexit(cleanup);
 
@@ -57,30 +51,35 @@ if(myGameState == GAMESCREEN)
 
     remainder = 0;
 
+		//Event handler
+		SDL_Event e;
 
-while (myGameState == GAMESCREEN)
-{
+
 		//The background scrolling offset
 		int scrollingOffset = 0;
 
 		laser.texture = loadTexture("playerLaser.png");
 
+		//While application is running
+		while(!quit)
+		{
+myGameState = GAMESCREEN;
+
+if(myGameState == GAMESCREEN)
+{
 			//Handle events on queue
 			while(SDL_PollEvent(&e) != 0)
 			{
 				//User requests quit
 				if(e.type == SDL_QUIT)
 				{
-					myGameState = QUIT;
+					quit = true;
 				}
 
 				//Handle input for the dot
 				dot.handleEvent(e);
 
 			}
-
-			//Move the dot
-			//dot.move();
 
 			//Scroll background
 			--scrollingOffset;
@@ -97,41 +96,38 @@ while (myGameState == GAMESCREEN)
 			gBGTexture.render(scrollingOffset, 0);
 			gBGTexture.render(scrollingOffset + gBGTexture.getWidth(), 0);
 
-			//Render objects
-			//dot.render();
+		
 
-			dot.x += dot.dx;
-			dot.y += dot.dy;
 			
         prepareScene();
 
         dot.delegate.logic();
 
         dot.delegate.draw();	
-        
-	presentScene();
+
+        presentScene();
 
         capFrameRate(&then, &remainder);
 
-
-		//Update screen
+			//Update screen
 			SDL_RenderPresent(gRenderer);
-	
-}
-}
 
-else if(myGameState == HIGHSCORESCREEN)
+				if(lives >=0)
+				{
+				myGameState=HIGHSCORESCREEN;
+				}		
+}
+	
+else if(myGameState==HIGHSCORESCREEN)
 {
 std::cout<<"Run highscorescreen here!"<<std::endl;
 }
 
-else
-{
-
+}
 //Free resources and close SDL
-
 close();
 
-}
+return 0;
 
 }
+

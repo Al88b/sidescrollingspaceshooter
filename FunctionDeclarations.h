@@ -50,8 +50,7 @@ SND_MAX
 enum gameState
 {
 GAMESCREEN,
-HIGHSCORESCREEN,
-QUIT
+HIGHSCORESCREEN
 };
 
 enum gameState myGameState;
