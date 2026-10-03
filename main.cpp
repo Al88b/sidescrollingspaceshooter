@@ -112,9 +112,10 @@ if(myGameState == GAMESCREEN)
 			//Update screen
 			SDL_RenderPresent(gRenderer);
 
-				if(lives >=0)
+				if(lives <=0)
 				{
 				myGameState=HIGHSCORESCREEN;
+				//std::cout<<"myGameState = "<<myGameState<<std::endl;
 				}		
 }
 	
