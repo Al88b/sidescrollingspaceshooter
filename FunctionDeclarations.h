@@ -26,8 +26,8 @@
 	dest[n - 1] = '\0'
 #define MAX_NAME_LENGTH 32
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+#define SCREEN_WIDTH  1280
+#define SCREEN_HEIGHT 720
 
 enum
 {
@@ -187,6 +187,8 @@ static void drawHighScore(void);
 static SDL_Texture *getTexture(char *name);
 
 static void addTextureToCache(char *name, SDL_Texture *sdlTexture);
+
+void drawScores(void);
 
 //Starts up SDL and creates window
 bool init();

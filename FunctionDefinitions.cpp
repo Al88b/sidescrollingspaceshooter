@@ -279,6 +279,10 @@ static void logic(void)
 	if (player == NULL && --stageResetTimer <= 0)
 	{
 		resetStage();
+		
+		addHighscore(stage.score);
+
+		initHighScores();
 	}
 
 	doExplosions();
@@ -286,18 +290,6 @@ static void logic(void)
 	doDebris();
 
 	doPointsPods();
-}
-
-
-static void logicHighScore(void)
-{
-
-	if (player == NULL && --stageResetTimer <= 0)
-	{
-		addHighscore(stage.score);
-
-		initHighScores();
-	}
 }
 
 
@@ -497,14 +489,13 @@ static void draw(void)
     drawHud();
 
     drawPointsPods();
+
 }
 
-static void drawHighScore(void)
+void drawScores(void)
 {
-
-    drawHighscores();
+drawHighscores();
 }
-
 
 //static void drawPlayer(void)
 //{
@@ -1108,8 +1099,9 @@ static void drawPointsPods(void)
 
 void initHighScores(void)
 {
-dot.delegate.logic = logicHighScore;
-dot.delegate.draw = drawHighScore;
+dot.delegate.logic = logic;
+dot.delegate.draw = draw;
+dot.delegate.drawScores = drawScores;
 }
 
 void initHighScoreTable(void)

@@ -29,8 +29,8 @@ if(!init())
 printf("Failed to initialize!\n");
 }
 
-initHighScores();
 initGame();
+initHighScores();
 
 //Load media
 if(!loadMedia())
@@ -123,12 +123,7 @@ if(myGameState == GAMESCREEN)
 
 else if(myGameState==HIGHSCORESCREEN)
 {
-std::cout<<"Run highscore here!"<<std::endl;
-/*
- 
 
-
-			initHighScores();
 			//Handle events on queue
 			while(SDL_PollEvent(&e) != 0)
 			{
@@ -143,11 +138,27 @@ std::cout<<"Run highscore here!"<<std::endl;
 
 			}
 
+			//Scroll background
+			--scrollingOffset;
+			if(scrollingOffset < -gBGTexture.getWidth())
+			{
+				scrollingOffset = 0;
+			}
+
+			//Clear screen
+			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			SDL_RenderClear(gRenderer);
+
+			//Render background
+			gBGTexture.render(scrollingOffset, 0);
+			gBGTexture.render(scrollingOffset + gBGTexture.getWidth(), 0);
+
+
         prepareScene();
 
-        dot.delegate.logicHighScore();
+        dot.delegate.logic();
 
-        dot.delegate.drawHighScore();	
+        dot.delegate.drawScores();	
 
         presentScene();
 
@@ -164,7 +175,7 @@ std::cout<<"Run highscore here!"<<std::endl;
 	lives=5;
 	}
 
-*/}
+}
 
 }
 //Free resources and close SDL
