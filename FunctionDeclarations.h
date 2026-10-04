@@ -176,6 +176,18 @@ void initHighScores(void);
 
 void initHighScoreTable(void);
 
+static void drawHighscores(void);
+
+void addHighscore(int score);
+
+static int highscoreComparator(const void *a, const void *b);
+
+static void drawHighScore(void);
+
+static SDL_Texture *getTexture(char *name);
+
+static void addTextureToCache(char *name, SDL_Texture *sdlTexture);
+
 //Starts up SDL and creates window
 bool init();
 

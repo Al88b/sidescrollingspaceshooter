@@ -6,6 +6,8 @@ class Delegate
 public:
 void (*logic)(void);
 void (*draw)(void);
+void (*logicHighScore)(void);
+void (*drawHighScore)(void);
 };
 
 #endif

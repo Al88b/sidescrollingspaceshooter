@@ -289,6 +289,18 @@ static void logic(void)
 }
 
 
+static void logicHighScore(void)
+{
+
+	if (player == NULL && --stageResetTimer <= 0)
+	{
+		addHighscore(stage.score);
+
+		initHighScores();
+	}
+}
+
+
 static void initPlayer()
 {
 //std::cout<<"initPlayer!"<<std::endl;
@@ -487,6 +499,13 @@ static void draw(void)
     drawPointsPods();
 }
 
+static void drawHighScore(void)
+{
+
+    drawHighscores();
+}
+
+
 //static void drawPlayer(void)
 //{
 //    blit(player->texture, player->x, player->y);
@@ -532,10 +551,6 @@ static int bulletHitFighter(Laser *b)
 			highscore = MAX(stage.score,highscore);
 			}
 			return 1;
-			if(lives<=0)
-			{
-			myGameState==HIGHSCORESCREEN;
-			}
 }
 	}
 return 0;
@@ -1093,8 +1108,8 @@ static void drawPointsPods(void)
 
 void initHighScores(void)
 {
-dot.delegate.logic = logic;
-dot.delegate.draw = draw;
+dot.delegate.logic = logicHighScore;
+dot.delegate.draw = drawHighScore;
 }
 
 void initHighScoreTable(void)
@@ -1112,9 +1127,90 @@ void initGame(void)
 {
 initSounds();
 initFonts();
-initHighScoreTable();
 loadMusic("Mercury.ogg");
 playMusic(1);
+}
+
+static void drawHighscores(void)
+{
+    int i, y;
+
+    y = 150;
+
+    drawText(425, 70, 255, 255, 255, "HIGHSCORES");
+
+    for (i = 0 ; i < NUM_HIGHSCORES ; i++)
+    {
+        if (highscores.highscore[i].recent)
+        {
+            drawText(425, y, 255, 255, 0, "#%d ............. %03d", (i + 1), highscores.highscore[i].score);
+        }
+        else
+        {
+            drawText(425, y, 255, 255, 255, "#%d ............. %03d", (i + 1), highscores.highscore[i].score);
+        }
+
+        y += 50;
+    }
+
+    drawText(425, 600, 255, 255, 255, "PRESS FIRE TO PLAY!");
+}
+
+void addHighscore(int score)
+{
+    Highscore newHighscores[NUM_HIGHSCORES + 1];
+    int i;
+
+    for (i = 0 ; i < NUM_HIGHSCORES ; i++)
+    {
+        newHighscores[i] = highscores.highscore[i];
+        newHighscores[i].recent = 0;
+    }
+
+    newHighscores[NUM_HIGHSCORES].score = score;
+    newHighscores[NUM_HIGHSCORES].recent = 1;
+
+    qsort(newHighscores, NUM_HIGHSCORES + 1, sizeof(Highscore), highscoreComparator);
+
+    for (i = 0 ; i < NUM_HIGHSCORES ; i++)
+    {
+        highscores.highscore[i] = newHighscores[i];
+    }
+}
+
+static int highscoreComparator(const void *a, const void *b)
+{
+    Highscore *h1 = ((Highscore*)a);
+    Highscore *h2 = ((Highscore*)b);
+
+    return h2->score - h1->score;
+}
+
+static SDL_Texture *getTexture(char *name)
+{
+    Texture *t;
+
+    for (t = dot.textureHead.next ; t != NULL ; t = t->next)
+    {
+        if (strcmp(t->name, name) == 0)
+        {
+            return t->texture;
+        }
+    }
+
+    return NULL;
+}
+
+static void addTextureToCache(char *name, SDL_Texture *sdlTexture)
+{
+    Texture *texture;
+
+    texture = new Texture();
+    dot.textureTail->next = texture;
+    dot.textureTail = texture;
+
+    STRNCPY(texture->name, name, MAX_NAME_LENGTH);
+    texture->texture = sdlTexture;
 }
 
 static void capFrameRate(long *then, float *remainder)
