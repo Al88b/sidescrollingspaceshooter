@@ -19,6 +19,7 @@
 #include "Debris.h"
 #include "Stage.h"
 
+
 int main(int argc, char** args)
 {
 
@@ -63,14 +64,16 @@ bool quit = false;
 		//While application is running
 		while(!quit)
 		{
-		myGameState = GAMESCREEN;
+myGameState = GAMESCREEN;
+//std::cout<<"state = "<<myGameState<<std::endl;
 
-
+				if(lives <=0)
+				{
+				myGameState=HIGHSCORESCREEN;
+				//std::cout<<"myGameState = "<<myGameState<<std::endl;
+				}
 if(myGameState == GAMESCREEN)
 {
-
-
-				
 			//Handle events on queue
 			while(SDL_PollEvent(&e) != 0)
 			{
@@ -85,8 +88,6 @@ if(myGameState == GAMESCREEN)
 
 			}
 
-
-				
 			//Scroll background
 			--scrollingOffset;
 			if(scrollingOffset < -gBGTexture.getWidth())
@@ -117,17 +118,63 @@ if(myGameState == GAMESCREEN)
 
 			//Update screen
 			SDL_RenderPresent(gRenderer);
-	if(lives <=0)
-	{
-	myGameState=HIGHSCORESCREEN;
-	std::cout<<"myGameState = "<<myGameState<<std::endl;
-	}		
+		
 }
+			}
+if(myGameState == GAMESCREEN)
+{
+			//Handle events on queue
+			while(SDL_PollEvent(&e) != 0)
+			{
+				//User requests quit
+				if(e.type == SDL_QUIT)
+				{
+					quit = true;
+				}
 
+				//Handle input for the dot
+				dot.handleEvent(e);
+
+			}
+
+			//Scroll background
+			--scrollingOffset;
+			if(scrollingOffset < -gBGTexture.getWidth())
+			{
+				scrollingOffset = 0;
+			}
+
+			//Clear screen
+			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			SDL_RenderClear(gRenderer);
+
+			//Render background
+			gBGTexture.render(scrollingOffset, 0);
+			gBGTexture.render(scrollingOffset + gBGTexture.getWidth(), 0);
+
+		
+
+			
+        prepareScene();
+
+        dot.delegate.logic();
+
+        dot.delegate.draw();	
+
+        presentScene();
+
+        capFrameRate(&then, &remainder);
+
+			//Update screen
+			SDL_RenderPresent(gRenderer);
+		
+}
+	
 
 else if(myGameState==HIGHSCORESCREEN)
 {
 
+ 
 
 
 			initHighScores();
@@ -175,5 +222,4 @@ close();
 return 0;
 
 
-}
 }
