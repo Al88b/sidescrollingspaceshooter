@@ -6,6 +6,7 @@
 #include "Debris.h"
 #include "Highscores.h"
 #include "Texture.h"
+#include "FunctionDeclarations.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
@@ -29,6 +30,9 @@ static char         drawTextBuffer[MAX_LINE_LENGTH];
 static int          enemySpawnTimer;
 static int	    stageResetTimer;
 static int          highscore;
+static Highscore *newHighscore;
+static int        cursorBlink;
+
 
 int lives = 5;
 
@@ -292,6 +296,42 @@ static void logic(void)
 	doPointsPods();
 }
 
+static void logicEH(void)
+{
+//std::cout<<"logic"<<std::endl;
+	doPlayer();
+
+	doEnemies();
+
+	doFighters();
+
+	doBullets();
+
+	spawnEnemies();
+
+	clipPlayer();
+
+	if (player == NULL && --stageResetTimer <= 0)
+	{
+		resetStage();
+		
+		addHighscore(stage.score);
+
+		initHighScores();
+	}
+
+	doExplosions();
+
+	doDebris();
+
+	doPointsPods();
+	
+	if(++cursorBlink >=FPS)
+	{
+	cursorBlink = 0;
+	}
+}
+
 
 static void initPlayer()
 {
@@ -453,7 +493,6 @@ static void doBullets(void)
 		prev = b;
 	}
 }
-
 static void fireBullet(void)
 {
 //std::cout<<"fireBullet"<<std::endl;
@@ -494,7 +533,26 @@ static void draw(void)
 
 void drawScores(void)
 {
+if(newHighscore != NULL)
+{
+drawNameInput();
+}
+else
+{
 drawHighscores();
+}
+}
+
+void drawEnterHighScores(void)
+{
+if(newHighscore != NULL)
+{
+drawNameInput();
+}
+else
+{
+drawHighscores();
+}
 }
 
 //static void drawPlayer(void)
@@ -954,56 +1012,64 @@ void initFonts(void)
 fontTexture = loadTexture("font.png");
 }
 
-void drawText(int x, int y, int r, int g, int b, char* format, ...)
+void drawText(int x, int y, int r, int g, int b, int align, char *format, ...)
 {
-int i, len, c;
-SDL_Rect rect;
-va_list args;
+	int      i, len, c;
+	SDL_Rect rect;
+	va_list  args;
 
-memset(&drawTextBuffer, '\0', sizeof(drawTextBuffer));
+	memset(&drawTextBuffer, '\0', sizeof(drawTextBuffer));
 
-va_start(args, format);
-vsprintf(drawTextBuffer, format, args);
-va_end(args);
+	va_start(args, format);
+	vsprintf(drawTextBuffer, format, args);
+	va_end(args);
 
-len = strlen(drawTextBuffer);
+	len = strlen(drawTextBuffer);
 
-rect.w = GLYPH_WIDTH;
-rect.h = GLYPH_HEIGHT;
-rect.y = 0;
+	switch (align)
+	{
+		case TEXT_RIGHT:
+			x -= (len * GLYPH_WIDTH);
+			break;
 
-SDL_SetTextureColorMod(fontTexture, r, g, b);
+		case TEXT_CENTER:
+			x -= (len * GLYPH_WIDTH) / 2;
+			break;
+	}
 
-for(i = 0; i < len ; i++)
-{
-c = drawTextBuffer[i];
+	rect.w = GLYPH_WIDTH;
+	rect.h = GLYPH_HEIGHT;
+	rect.y = 0;
 
-if(c >= ' ' && c <= 'Z')
-{
-rect.x = (c - ' ') * GLYPH_WIDTH;
+	SDL_SetTextureColorMod(fontTexture, r, g, b);
 
-blitRect(fontTexture, &rect, x, y);
+	for (i = 0; i < len; i++)
+	{
+		c = drawTextBuffer[i];
 
-x += GLYPH_WIDTH;
+		if (c >= ' ' && c <= 'Z')
+		{
+			rect.x = (c - ' ') * GLYPH_WIDTH;
+
+			blitRect(fontTexture, &rect, x, y);
+
+			x += GLYPH_WIDTH;
+		}
+	}
 }
-}
-}
-
 static void drawHud(void)
 {
-drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
+	drawText(10, 10, 255, 255, 255, TEXT_LEFT, "SCORE: %03d", stage.score);
 
-if(stage.score > 0 && stage.score == highscore)
-{
-drawText(1020, 10, 0, 255, 0, "HIGHSCORE: &03d", highscore);
+	if (stage.score < highscores.highscore[0].score)
+	{
+		drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, "HIGHSCORE: %03d", highscores.highscore[0].score);
+	}
+	else
+	{
+		drawText(SCREEN_WIDTH - 10, 10, 0, 255, 0, TEXT_RIGHT, "HIGHSCORE: %03d", stage.score);
+	}
 }
-else
-{
-drawText(1020, 10, 0, 255, 255, "HIGHSCORE: &03d", highscore);
-}
-
-}
-
 static void doPointsPods(void)
 {
 	Laser *e, *prev;
@@ -1101,7 +1167,9 @@ void initHighScores(void)
 {
 dot.delegate.logic = logic;
 dot.delegate.draw = draw;
+dot.delegate.logicEH = logicEH;
 dot.delegate.drawScores = drawScores;
+dot.delegate.drawEnterHighScore = drawEnterHighScores;
 }
 
 void initHighScoreTable(void)
@@ -1115,6 +1183,24 @@ highscores.highscore[i].score = NUM_HIGHSCORES - i;
 
 }
 
+void initHighScoreTableEH(void)
+{
+	int i;
+
+	memset(&highscores, 0, sizeof(Highscores));
+
+	for (i = 0; i < NUM_HIGHSCORES; i++)
+	{
+		highscores.highscore[i].score = NUM_HIGHSCORES - i;
+		STRNCPY(highscores.highscore[i].name, "ANONYMOUS", MAX_SCORE_NAME_LENGTH);
+	}
+
+	newHighscore = NULL;
+
+	cursorBlink = 0;
+}
+
+
 void initGame(void)
 {
 initSounds();
@@ -1125,51 +1211,62 @@ playMusic(1);
 
 static void drawHighscores(void)
 {
-    int i, y;
+	int i, y, r, g, b;
 
-    y = 150;
+	y = 150;
 
-    drawText(425, 70, 255, 255, 255, "HIGHSCORES");
+	drawText(SCREEN_WIDTH / 2, 70, 255, 255, 255, TEXT_CENTER, "HIGHSCORES");
 
-    for (i = 0 ; i < NUM_HIGHSCORES ; i++)
-    {
-        if (highscores.highscore[i].recent)
-        {
-            drawText(425, y, 255, 255, 0, "#%d ............. %03d", (i + 1), highscores.highscore[i].score);
-        }
-        else
-        {
-            drawText(425, y, 255, 255, 255, "#%d ............. %03d", (i + 1), highscores.highscore[i].score);
-        }
+	for (i = 0; i < NUM_HIGHSCORES; i++)
+	{
+		r = 255;
+		g = 255;
+		b = 255;
 
-        y += 50;
-    }
+		if (highscores.highscore[i].recent)
+		{
+			b = 0;
+		}
 
-    drawText(425, 600, 255, 255, 255, "PRESS FIRE TO PLAY!");
+		drawText(SCREEN_WIDTH / 2, y, r, g, b, TEXT_CENTER, "#%d. %-15s ...... %03d", (i + 1), highscores.highscore[i].name, highscores.highscore[i].score);
+
+		y += 50;
+	}
+
+	drawText(SCREEN_WIDTH / 2, 600, 255, 255, 255, TEXT_CENTER, "PRESS FIRE TO PLAY!");
 }
+
 
 void addHighscore(int score)
 {
-    Highscore newHighscores[NUM_HIGHSCORES + 1];
-    int i;
+	Highscore newHighscores[NUM_HIGHSCORES + 1];
+	int       i;
 
-    for (i = 0 ; i < NUM_HIGHSCORES ; i++)
-    {
-        newHighscores[i] = highscores.highscore[i];
-        newHighscores[i].recent = 0;
-    }
+	memset(newHighscores, 0, sizeof(Highscore) * (NUM_HIGHSCORES + 1));
 
-    newHighscores[NUM_HIGHSCORES].score = score;
-    newHighscores[NUM_HIGHSCORES].recent = 1;
+	for (i = 0; i < NUM_HIGHSCORES; i++)
+	{
+		newHighscores[i] = highscores.highscore[i];
+		newHighscores[i].recent = 0;
+	}
 
-    qsort(newHighscores, NUM_HIGHSCORES + 1, sizeof(Highscore), highscoreComparator);
+	newHighscores[NUM_HIGHSCORES].score = score;
+	newHighscores[NUM_HIGHSCORES].recent = 1;
 
-    for (i = 0 ; i < NUM_HIGHSCORES ; i++)
-    {
-        highscores.highscore[i] = newHighscores[i];
-    }
+	qsort(newHighscores, NUM_HIGHSCORES + 1, sizeof(Highscore), highscoreComparator);
+
+	newHighscore = NULL;
+
+	for (i = 0; i < NUM_HIGHSCORES; i++)
+	{
+		highscores.highscore[i] = newHighscores[i];
+
+		if (highscores.highscore[i].recent)
+		{
+			newHighscore = &highscores.highscore[i];
+		}
+	}
 }
-
 static int highscoreComparator(const void *a, const void *b)
 {
     Highscore *h1 = ((Highscore*)a);
@@ -1203,6 +1300,65 @@ static void addTextureToCache(char *name, SDL_Texture *sdlTexture)
 
     STRNCPY(texture->name, name, MAX_NAME_LENGTH);
     texture->texture = sdlTexture;
+}
+
+static void doNameInput(void)
+{
+	int  i, n;
+	char c;
+
+	n = strlen(newHighscore->name);
+
+	for (i = 0; i < strlen(dot.inputText); i++)
+	{
+		c = toupper(dot.inputText[i]);
+
+		if (n < MAX_SCORE_NAME_LENGTH - 1 && c >= ' ' && c <= 'Z')
+		{
+			newHighscore->name[n++] = c;
+		}
+	}
+
+	if (n > 0 && dot.keyboard[SDL_SCANCODE_BACKSPACE])
+	{
+		newHighscore->name[--n] = '\0';
+
+		dot.keyboard[SDL_SCANCODE_BACKSPACE] = 0;
+	}
+
+	if (dot.keyboard[SDL_SCANCODE_RETURN])
+	{
+		if (strlen(newHighscore->name) == 0)
+		{
+			STRNCPY(newHighscore->name, "PIGGER", MAX_SCORE_NAME_LENGTH);
+		}
+
+		newHighscore = NULL;
+	}
+}
+
+static void drawNameInput(void)
+{
+	SDL_Rect r;
+
+	drawText(SCREEN_WIDTH / 2, 70, 255, 255, 255, TEXT_CENTER, "CONGRATULATIONS, YOU'VE GAINED A HIGHSCORE!");
+
+	drawText(SCREEN_WIDTH / 2, 120, 255, 255, 255, TEXT_CENTER, "ENTER YOUR NAME BELOW:");
+
+	drawText(SCREEN_WIDTH / 2, 250, 128, 255, 128, TEXT_CENTER, newHighscore->name);
+
+	if (cursorBlink < FPS / 2)
+	{
+		r.x = ((SCREEN_WIDTH / 2) + (strlen(newHighscore->name) * GLYPH_WIDTH) / 2) + 5;
+		r.y = 250;
+		r.w = GLYPH_WIDTH;
+		r.h = GLYPH_HEIGHT;
+
+		SDL_SetRenderDrawColor(dot.renderer, 0, 255, 0, 255);
+		SDL_RenderFillRect(dot.renderer, &r);
+	}
+
+	drawText(SCREEN_WIDTH / 2, 625, 255, 255, 255, TEXT_CENTER, "PRESS RETURN WHEN FINISHED");
 }
 
 static void capFrameRate(long *then, float *remainder)

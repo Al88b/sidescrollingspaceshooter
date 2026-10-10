@@ -4,8 +4,9 @@
 class Highscore
 {
 public:
-int recent;
-int score;
+char name[MAX_SCORE_NAME_LENGTH];
+	int  recent;
+	int  score;
 };
 
 #endif

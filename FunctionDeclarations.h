@@ -25,7 +25,7 @@
 	strncpy(dest, src, n);    \
 	dest[n - 1] = '\0'
 #define MAX_NAME_LENGTH 32
-
+#define MAX_SCORE_NAME_LENGTH 16
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 
@@ -50,10 +50,22 @@ SND_MAX
 enum gameState
 {
 GAMESCREEN,
-HIGHSCORESCREEN
+HIGHSCORESCREEN,
+ENTERHIGHSCORESCREEN
 };
 
 enum gameState myGameState;
+
+enum
+{
+	TEXT_LEFT,
+	TEXT_CENTER,
+	TEXT_RIGHT
+};
+
+
+//const char* format[] = { "TEXT_LEFT", "TEXT_CENTER", "TEXT_RIGHT" };
+
 
 //Scene textures
 LTexture gDotTexture;
@@ -158,14 +170,6 @@ static void drawPointsPods(void);
 
 static void addPointsPod(int x, int y);
 
-void initHighScoreTable(void);
-
-void initHighScores(void);
-
-static void drawHighscores(void);
-
-void addHighscore(int score);
-
 static void highScoreComparator(const void *a, const void *b);
 
 void initGame(void);
@@ -189,6 +193,8 @@ static SDL_Texture *getTexture(char *name);
 static void addTextureToCache(char *name, SDL_Texture *sdlTexture);
 
 void drawScores(void);
+
+static void drawNameInput(void);
 
 //Starts up SDL and creates window
 bool init();

@@ -31,6 +31,7 @@ printf("Failed to initialize!\n");
 
 initGame();
 initHighScores();
+initHighScoreTable();
 
 //Load media
 if(!loadMedia())
@@ -64,64 +65,10 @@ bool quit = false;
 		//While application is running
 		while(!quit)
 		{
-myGameState = GAMESCREEN;
+myGameState = HIGHSCORESCREEN;
 //std::cout<<"state = "<<myGameState<<std::endl;
 
-				if(lives <=0)
-				{
-				myGameState=HIGHSCORESCREEN;
-				//std::cout<<"myGameState = "<<myGameState<<std::endl;
-				}
-if(myGameState == GAMESCREEN)
-{
-			//Handle events on queue
-			while(SDL_PollEvent(&e) != 0)
-			{
-				//User requests quit
-				if(e.type == SDL_QUIT)
-				{
-					quit = true;
-				}
-
-				//Handle input for the dot
-				dot.handleEvent(e);
-
-			}
-
-			//Scroll background
-			--scrollingOffset;
-			if(scrollingOffset < -gBGTexture.getWidth())
-			{
-				scrollingOffset = 0;
-			}
-
-			//Clear screen
-			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-			SDL_RenderClear(gRenderer);
-
-			//Render background
-			gBGTexture.render(scrollingOffset, 0);
-			gBGTexture.render(scrollingOffset + gBGTexture.getWidth(), 0);
-
-		
-
-			
-        prepareScene();
-
-        dot.delegate.logic();
-
-        dot.delegate.draw();	
-
-        presentScene();
-
-        capFrameRate(&then, &remainder);
-
-			//Update screen
-			SDL_RenderPresent(gRenderer);
-		
-			}
-
-else if(myGameState==HIGHSCORESCREEN)
+if(myGameState==HIGHSCORESCREEN)
 {
 
 			//Handle events on queue
@@ -169,14 +116,139 @@ else if(myGameState==HIGHSCORESCREEN)
 
 
 
-	if((myGameState=HIGHSCORESCREEN) && (dot.keyboard[SDL_SCANCODE_LCTRL]))
+	if((myGameState==HIGHSCORESCREEN) && (dot.keyboard[SDL_SCANCODE_LCTRL]))
 	{
 	myGameState=GAMESCREEN;
+	initGame();
 	lives=5;
 	}
 
 }
+else if(myGameState == GAMESCREEN)
+{
 
+				if(lives <=0)
+				{
+				myGameState=HIGHSCORESCREEN;
+				//std::cout<<"myGameState = "<<myGameState<<std::endl;
+				}
+
+			//Handle events on queue
+			while(SDL_PollEvent(&e) != 0)
+			{
+				//User requests quit
+				if(e.type == SDL_QUIT)
+				{
+					quit = true;
+				}
+
+				//Handle input for the dot
+				dot.handleEvent(e);
+
+			}
+
+			//Scroll background
+			--scrollingOffset;
+			if(scrollingOffset < -gBGTexture.getWidth())
+			{
+				scrollingOffset = 0;
+			}
+
+			//Clear screen
+			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			SDL_RenderClear(gRenderer);
+
+			//Render background
+			gBGTexture.render(scrollingOffset, 0);
+			gBGTexture.render(scrollingOffset + gBGTexture.getWidth(), 0);
+
+		
+
+			
+        prepareScene();
+
+        dot.delegate.logic();
+
+        dot.delegate.draw();	
+
+        presentScene();
+
+        capFrameRate(&then, &remainder);
+
+			//Update screen
+			SDL_RenderPresent(gRenderer);
+		
+			
+
+}
+else if(myGameState==ENTERHIGHSCORESCREEN)
+{
+
+
+			//Handle events on queue
+			while (SDL_PollEvent(&e)!=0)
+	{
+		switch (e.type)
+		{
+			case SDL_QUIT:
+				quit = true;
+				break;
+
+			case SDL_KEYDOWN:
+				doKeyDown(&e.key);
+				break;
+
+			case SDL_KEYUP:
+				doKeyUp(&e.key);
+				break;
+
+			case SDL_TEXTINPUT:
+				STRNCPY(dot.inputText, e.text.text, MAX_LINE_LENGTH);
+				break;
+
+			default:
+				break;
+		}
+	}
+
+			//Scroll background
+			--scrollingOffset;
+			if(scrollingOffset < -gBGTexture.getWidth())
+			{
+				scrollingOffset = 0;
+			}
+
+			//Clear screen
+			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			SDL_RenderClear(gRenderer);
+
+			//Render background
+			gBGTexture.render(scrollingOffset, 0);
+			gBGTexture.render(scrollingOffset + gBGTexture.getWidth(), 0);
+
+
+        prepareScene();
+	
+	doNameInput();
+
+        dot.delegate.logicEH();
+
+        dot.delegate.drawEnterHighScore();	
+
+        presentScene();
+
+        capFrameRate(&then, &remainder);
+
+			//Update screen
+			SDL_RenderPresent(gRenderer);
+
+
+
+	if((myGameState=ENTERHIGHSCORESCREEN) && (newHighscore != NULL) && (dot.keyboard[SDL_SCANCODE_RETURN]))
+	{
+	myGameState=HIGHSCORESCREEN;
+	}
+}
 }
 //Free resources and close SDL
 close();
