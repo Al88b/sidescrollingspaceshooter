@@ -64,11 +64,10 @@ bool quit = false;
 		//While application is running
 		while(!quit)
 		{
-//std::cout<<"state = "<<myGameState<<std::endl;
-
 				
 if(myGameState == GAMESCREEN)
 {
+std::cout<<"state = "<<myGameState<<std::endl;
 			//Handle events on queue
 			while(SDL_PollEvent(&e) != 0)
 			{
