@@ -49,8 +49,8 @@ SND_MAX
 
 enum gameState
 {
-GAMESCREEN,
 HIGHSCORESCREEN,
+GAMESCREEN,
 ENTERHIGHSCORESCREEN
 };
 
@@ -64,7 +64,7 @@ enum
 };
 
 
-//const char* format[] = { "TEXT_LEFT", "TEXT_CENTER", "TEXT_RIGHT" };
+const char* format[] = { "TEXT_LEFT", "TEXT_CENTER", "TEXT_RIGHT" };
 
 
 //Scene textures
