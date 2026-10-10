@@ -1150,9 +1150,16 @@ void initHighScoreTable(void)
 	for (i = 0; i < NUM_HIGHSCORES; i++)
 	{
 		highscores.highscore[i].score = NUM_HIGHSCORES - i;
-		STRNCPY(highscores.highscore[i].name, "ANONYMOUS", MAX_SCORE_NAME_LENGTH);
 	}
-
+STRNCPY(highscores.highscore[0].name, "PIGGER", MAX_SCORE_NAME_LENGTH);
+STRNCPY(highscores.highscore[1].name, "SPACCO", MAX_SCORE_NAME_LENGTH);
+STRNCPY(highscores.highscore[2].name, "GFAG", MAX_SCORE_NAME_LENGTH);
+STRNCPY(highscores.highscore[3].name, "PIGO", MAX_SCORE_NAME_LENGTH);
+STRNCPY(highscores.highscore[4].name, "YOUNG RADICAL", MAX_SCORE_NAME_LENGTH);
+STRNCPY(highscores.highscore[5].name, "KRYPTON85", MAX_SCORE_NAME_LENGTH);
+STRNCPY(highscores.highscore[6].name, "SMARTASS", MAX_SCORE_NAME_LENGTH);
+STRNCPY(highscores.highscore[7].name, "GBOX", MAX_SCORE_NAME_LENGTH);
+	
 	newHighscore = NULL;
 
 	cursorBlink = 0;
@@ -1217,10 +1224,10 @@ void addHighscore(int score)
 	{
 		highscores.highscore[i] = newHighscores[i];
 
-		if (highscores.highscore[i].recent)
+		/*if (highscores.highscore[i].recent)
 		{
 			newHighscore = &highscores.highscore[i];
-		}
+		}*/
 	}
 }
 static int highscoreComparator(const void *a, const void *b)
