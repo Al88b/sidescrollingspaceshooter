@@ -285,7 +285,7 @@ static void logic(void)
 		resetStage();
 		
 		addHighscore(stage.score);
-std::cout<<"Stage.score = "<<stage.score<<std::endl;
+//std::cout<<"Stage.score = "<<stage.score<<std::endl;
 
 	
 	}
@@ -1084,7 +1084,7 @@ static void doPointsPods(void)
 			}
 
 			prev->next = e->next;
-			free(e);
+			delete e;
 			e = prev;
 		}
 
@@ -1217,7 +1217,8 @@ void addHighscore(int score)
 		{
 			newHighscore = &highscores.highscore[i];
 		}
-	}
+		std::cout<<"newHighscores = "<<newHighscore<<std::endl;	
+}
 }
 static int highscoreComparator(const void *a, const void *b)
 {

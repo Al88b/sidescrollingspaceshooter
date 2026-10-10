@@ -253,10 +253,10 @@ std::cout<<"Gamestate = "<<myGameState<<std::endl;
 
 
 
-	if(dot.keyboard[SDL_SCANCODE_RETURN])
+	/*if(dot.keyboard[SDL_SCANCODE_RETURN])
 	{
 	myGameState=HIGHSCORESCREEN;
-	}
+	}*/
 }
 }
 //Free resources and close SDL
