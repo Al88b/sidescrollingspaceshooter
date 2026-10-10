@@ -20,19 +20,17 @@
 #include "Stage.h"
 
 
-
 int main(int argc, char** args)
 {
-newHighscore = 014;
-myGameState=ENTERHIGHSCORESCREEN;
+
 //Start up SDL and create window
 if(!init())
 {
 printf("Failed to initialize!\n");
 }
 
+initGame();
 initHighScores();
-initHighScoreTable();
 
 //Load media
 if(!loadMedia())
@@ -66,9 +64,14 @@ bool quit = false;
 		//While application is running
 		while(!quit)
 		{
+myGameState = GAMESCREEN;
 //std::cout<<"state = "<<myGameState<<std::endl;
 
-				
+				if(lives <=0)
+				{
+				myGameState=HIGHSCORESCREEN;
+				//std::cout<<"myGameState = "<<myGameState<<std::endl;
+				}
 if(myGameState == GAMESCREEN)
 {
 			//Handle events on queue
@@ -115,24 +118,11 @@ if(myGameState == GAMESCREEN)
 
 			//Update screen
 			SDL_RenderPresent(gRenderer);
-				
-
-				if((lives <=0) && (newHighscore != NULL))
-				{
-				myGameState=ENTERHIGHSCORESCREEN;
-				}
-				else if
-				((lives<=0) && (newHighscore == NULL))
-				{
-				myGameState=HIGHSCORESCREEN;
-				}
-			
+		
 			}
 
 else if(myGameState==HIGHSCORESCREEN)
 {
-std::cout<<"Gamestate = "<<myGameState<<std::endl;
-initGame();
 
 			//Handle events on queue
 			while(SDL_PollEvent(&e) != 0)
@@ -179,85 +169,14 @@ initGame();
 
 
 
-	if(dot.keyboard[SDL_SCANCODE_LCTRL])
+	if((myGameState=HIGHSCORESCREEN) && (dot.keyboard[SDL_SCANCODE_LCTRL]))
 	{
-	std::cout<<"CTRL pressed!"<<std::endl;
 	myGameState=GAMESCREEN;
-	std::cout<<"myGameState = "<<myGameState<<std::endl;
 	lives=5;
 	}
 
 }
 
-else if(myGameState==ENTERHIGHSCORESCREEN)
-{
-std::cout<<"Gamestate = "<<myGameState<<std::endl;
-
-
-			//Handle events on queue
-			while (SDL_PollEvent(&e) !=0 )
-	{
-		switch (e.type)
-		{
-			case SDL_QUIT:
-				quit = true;
-				break;
-
-			case SDL_KEYDOWN:
-				doKeyDown(&e.key);
-				break;
-
-			case SDL_KEYUP:
-				doKeyUp(&e.key);
-				break;
-
-			case SDL_TEXTINPUT:
-				STRNCPY(dot.inputText, e.text.text, MAX_LINE_LENGTH);
-				break;
-
-			default:
-				break;
-		}
-	}
-
-			//Scroll background
-			--scrollingOffset;
-			if(scrollingOffset < -gBGTexture.getWidth())
-			{
-				scrollingOffset = 0;
-			}
-
-			//Clear screen
-			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-			SDL_RenderClear(gRenderer);
-
-			//Render background
-			gBGTexture.render(scrollingOffset, 0);
-			gBGTexture.render(scrollingOffset + gBGTexture.getWidth(), 0);
-
-
-        prepareScene();
-	
-	doNameInput();
-
-        dot.delegate.logic();
-
-        dot.delegate.drawEnterHighScore();	
-
-        presentScene();
-
-        capFrameRate(&then, &remainder);
-
-			//Update screen
-			SDL_RenderPresent(gRenderer);
-
-
-
-	if(dot.keyboard[SDL_SCANCODE_RETURN])
-	{
-	myGameState=HIGHSCORESCREEN;
-	}
-}
 }
 //Free resources and close SDL
 close();

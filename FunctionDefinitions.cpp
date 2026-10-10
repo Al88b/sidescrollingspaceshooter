@@ -294,37 +294,6 @@ static void logic(void)
 	doDebris();
 
 	doPointsPods();
-}
-
-static void logicEH(void)
-{
-//std::cout<<"logic"<<std::endl;
-	doPlayer();
-
-	doEnemies();
-
-	doFighters();
-
-	doBullets();
-
-	spawnEnemies();
-
-	clipPlayer();
-
-	if (player == NULL && --stageResetTimer <= 0)
-	{
-		resetStage();
-		
-		addHighscore(stage.score);
-
-		initHighScores();
-	}
-
-	doExplosions();
-
-	doDebris();
-
-	doPointsPods();
 	
 	if(++cursorBlink >=FPS)
 	{
@@ -1167,23 +1136,12 @@ void initHighScores(void)
 {
 dot.delegate.logic = logic;
 dot.delegate.draw = draw;
-dot.delegate.logicEH = logicEH;
 dot.delegate.drawScores = drawScores;
 dot.delegate.drawEnterHighScore = drawEnterHighScores;
 }
 
+
 void initHighScoreTable(void)
-{
-int i;
-
-for(i= 0; i < NUM_HIGHSCORES; i++)
-{
-highscores.highscore[i].score = NUM_HIGHSCORES - i;
-}
-
-}
-
-void initHighScoreTableEH(void)
 {
 	int i;
 
@@ -1241,8 +1199,6 @@ void addHighscore(int score)
 {
 	Highscore newHighscores[NUM_HIGHSCORES + 1];
 	int       i;
-
-	memset(newHighscores, 0, sizeof(Highscore) * (NUM_HIGHSCORES + 1));
 
 	for (i = 0; i < NUM_HIGHSCORES; i++)
 	{
