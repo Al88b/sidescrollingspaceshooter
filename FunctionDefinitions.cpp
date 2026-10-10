@@ -285,8 +285,9 @@ static void logic(void)
 		resetStage();
 		
 		addHighscore(stage.score);
+std::cout<<"Stage.score = "<<stage.score<<std::endl;
 
-		initHighScores();
+	
 	}
 
 	doExplosions();
@@ -502,11 +503,6 @@ static void draw(void)
 
 void drawScores(void)
 {
-if(newHighscore != NULL)
-{
-drawNameInput();
-}
-else
 {
 drawHighscores();
 }
@@ -514,13 +510,8 @@ drawHighscores();
 
 void drawEnterHighScores(void)
 {
-if(newHighscore != NULL)
 {
 drawNameInput();
-}
-else
-{
-drawHighscores();
 }
 }
 
@@ -1032,7 +1023,7 @@ static void drawHud(void)
 
 	if (stage.score < highscores.highscore[0].score)
 	{
-		drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, "HIGHSCORE: %03d", highscores.highscore[0].score);
+		drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, "HIGHSCORE: %03d", highscore);
 	}
 	else
 	{
@@ -1137,15 +1128,13 @@ void initHighScores(void)
 dot.delegate.logic = logic;
 dot.delegate.draw = draw;
 dot.delegate.drawScores = drawScores;
-dot.delegate.drawEnterHighScore = drawEnterHighScores;
+dot.delegate.drawEnterHighScores = drawEnterHighScores;
 }
 
 
 void initHighScoreTable(void)
 {
 	int i;
-
-	memset(&highscores, 0, sizeof(Highscores));
 
 	for (i = 0; i < NUM_HIGHSCORES; i++)
 	{
@@ -1224,10 +1213,10 @@ void addHighscore(int score)
 	{
 		highscores.highscore[i] = newHighscores[i];
 
-		/*if (highscores.highscore[i].recent)
+		if (highscores.highscore[i].recent)
 		{
 			newHighscore = &highscores.highscore[i];
-		}*/
+		}
 	}
 }
 static int highscoreComparator(const void *a, const void *b)

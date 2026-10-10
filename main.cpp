@@ -113,18 +113,22 @@ std::cout<<"state = "<<myGameState<<std::endl;
 			//Update screen
 			SDL_RenderPresent(gRenderer);
 				
+std::cout<<"Score = "<<stage.score<<std::endl;
+std::cout<<"highscore = "<<highscore<<std::endl;
 
-				if((lives <=0) && (newHighscore != NULL))
+				if( (lives <=0) && (highscore) >= (newHighscore) )
 				{
 					
 				doNameInput();
 				myGameState=ENTERHIGHSCORESCREEN;
 				}
 				else if
-				((lives<=0) && (newHighscore == NULL))
+				( (lives<=0) && (highscore) <= (newHighscore) )
+
 				{
 				myGameState=HIGHSCORESCREEN;
 				}
+
 			
 			}
 
@@ -193,7 +197,7 @@ std::cout<<"Gamestate = "<<myGameState<<std::endl;
 
 
 			//Handle events on queue
-			while (SDL_PollEvent(&e)!=0)
+			while (SDL_PollEvent(&e))
 	{
 		switch (e.type)
 		{
@@ -238,7 +242,7 @@ std::cout<<"Gamestate = "<<myGameState<<std::endl;
 
         dot.delegate.logic();
 
-        dot.delegate.drawScores();	
+        dot.delegate.drawEnterHighScores();	
 
         presentScene();
 

@@ -8,7 +8,7 @@ void (*logic)(void);
 void (*draw)(void);
 void (*logicEH)(void);
 void (*drawScores)(void);
-void (*drawEnterHighScore)(void);
+void (*drawEnterHighScores)(void);
 };
 
 #endif
