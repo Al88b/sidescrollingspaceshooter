@@ -19,20 +19,18 @@
 #include "Debris.h"
 #include "Stage.h"
 
-
-
 int main(int argc, char** args)
 {
-newHighscore = 014;
-myGameState=ENTERHIGHSCORESCREEN;
+
 //Start up SDL and create window
 if(!init())
 {
 printf("Failed to initialize!\n");
 }
-
+initGame();
 initHighScores();
 initHighScoreTable();
+
 
 //Load media
 if(!loadMedia())
@@ -119,6 +117,8 @@ if(myGameState == GAMESCREEN)
 
 				if((lives <=0) && (newHighscore != NULL))
 				{
+					
+				doNameInput();
 				myGameState=ENTERHIGHSCORESCREEN;
 				}
 				else if
@@ -132,7 +132,6 @@ if(myGameState == GAMESCREEN)
 else if(myGameState==HIGHSCORESCREEN)
 {
 std::cout<<"Gamestate = "<<myGameState<<std::endl;
-initGame();
 
 			//Handle events on queue
 			while(SDL_PollEvent(&e) != 0)
@@ -195,7 +194,7 @@ std::cout<<"Gamestate = "<<myGameState<<std::endl;
 
 
 			//Handle events on queue
-			while (SDL_PollEvent(&e) !=0 )
+			while (SDL_PollEvent(&e)!=0)
 	{
 		switch (e.type)
 		{
@@ -237,12 +236,10 @@ std::cout<<"Gamestate = "<<myGameState<<std::endl;
 
 
         prepareScene();
-	
-	doNameInput();
 
         dot.delegate.logic();
 
-        dot.delegate.drawEnterHighScore();	
+        dot.delegate.drawScores();	
 
         presentScene();
 
