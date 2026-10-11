@@ -31,6 +31,7 @@ static int          enemySpawnTimer;
 static int	    stageResetTimer;
 static int          highscore;
 static Highscore *newHighscore;
+static int 	  lastKnownHighscore;
 static int        cursorBlink;
 
 
@@ -1216,9 +1217,12 @@ void addHighscore(int score)
 		if (highscores.highscore[i].recent)
 		{
 			newHighscore = &highscores.highscore[i];
+			lastKnownHighscore=&highscores.highscore[0].score;
 		}
 		std::cout<<"newHighscores = "<<newHighscore<<std::endl;	
 }
+
+std::cout<<"1st highscore of array = "<<lastKnownHighscore<<std::endl;
 }
 static int highscoreComparator(const void *a, const void *b)
 {

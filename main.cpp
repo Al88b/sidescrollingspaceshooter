@@ -116,14 +116,14 @@ std::cout<<"state = "<<myGameState<<std::endl;
 std::cout<<"Score = "<<stage.score<<std::endl;
 std::cout<<"highscore = "<<highscore<<std::endl;
 
-				if( (lives <=0) && (highscore) >= (newHighscore) )
+				if( (lives <=0) && (highscore) >= (lastKnownHighscore))
 				{
 					
 				doNameInput();
 				myGameState=ENTERHIGHSCORESCREEN;
 				}
 				else if
-				( (lives<=0) && (highscore) <= (newHighscore) )
+				( (lives<=0) && (highscore) <= (lastKnownHighscore))
 
 				{
 				myGameState=HIGHSCORESCREEN;
@@ -194,7 +194,8 @@ std::cout<<"Gamestate = "<<myGameState<<std::endl;
 else if(myGameState==ENTERHIGHSCORESCREEN)
 {
 std::cout<<"Gamestate = "<<myGameState<<std::endl;
-
+std::cout<<"Run highscore entry here! "<<std::endl;
+/*
 
 			//Handle events on queue
 			while (SDL_PollEvent(&e))
@@ -253,11 +254,11 @@ std::cout<<"Gamestate = "<<myGameState<<std::endl;
 
 
 
-	/*if(dot.keyboard[SDL_SCANCODE_RETURN])
+	if(dot.keyboard[SDL_SCANCODE_RETURN])
 	{
 	myGameState=HIGHSCORESCREEN;
-	}*/
-}
+	}
+*/}
 }
 //Free resources and close SDL
 close();
