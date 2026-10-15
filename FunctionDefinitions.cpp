@@ -177,7 +177,7 @@ SDL_Quit();
 
 void doKeyUp(SDL_KeyboardEvent* e)
 {
-if(event->repeat == 0 && e->keysym.scancode < MAX_KEYBOARD_KEYS)
+if(e->repeat == 0 && e->keysym.scancode < MAX_KEYBOARD_KEYS)
 {
 dot.keyboard[e->keysym.scancode] = 0;
 }
@@ -186,7 +186,7 @@ dot.keyboard[e->keysym.scancode] = 0;
 
 void doKeyDown(SDL_KeyboardEvent* e)
 {
-if(event->repeat == 0 && e->keysym.scancode < MAX_KEYBOARD_KEYS)
+if(e->repeat == 0 && e->keysym.scancode < MAX_KEYBOARD_KEYS)
 {
 dot.keyboard[e->keysym.scancode] = 1;
 }

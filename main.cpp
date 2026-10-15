@@ -183,6 +183,7 @@ else if(myGameState==HIGHSCORESCREEN)
 
 	if(dot.keyboard[SDL_SCANCODE_LCTRL])
 	{
+	std::cout<<"lCtrl key pressed!"<<std::endl;
 	myGameState=GAMESCREEN;
 	lives=5;
 	}
