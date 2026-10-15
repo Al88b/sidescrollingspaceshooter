@@ -181,7 +181,7 @@ else if(myGameState==HIGHSCORESCREEN)
 
 
 
-	if((myGameState=HIGHSCORESCREEN) && (dot.keyboard[SDL_SCANCODE_LCTRL]))
+	if(dot.keyboard[SDL_SCANCODE_LCTRL])
 	{
 	myGameState=GAMESCREEN;
 	lives=5;

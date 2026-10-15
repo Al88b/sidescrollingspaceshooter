@@ -175,20 +175,20 @@ SDL_Quit();
 
 }
 
-void doKeyUp(SDL_KeyboardEvent* event)
+void doKeyUp(SDL_KeyboardEvent* e)
 {
 if(event->repeat == 0 && event->keysym.scancode < MAX_KEYBOARD_KEYS)
 {
-dot.keyboard[event->keysym.scancode] = 0;
+dot.keyboard[e->keysym.scancode] = 0;
 }
 
 }
 
-void doKeyDown(SDL_KeyboardEvent* event)
+void doKeyDown(SDL_KeyboardEvent* e)
 {
 if(event->repeat == 0 && event->keysym.scancode < MAX_KEYBOARD_KEYS)
 {
-dot.keyboard[event->keysym.scancode] = 1;
+dot.keyboard[e->keysym.scancode] = 1;
 }
 
 }
