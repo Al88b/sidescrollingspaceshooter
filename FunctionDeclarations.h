@@ -25,6 +25,7 @@
 	strncpy(dest, src, n);    \
 	dest[n - 1] = '\0'
 #define MAX_NAME_LENGTH 32
+
 #define MAX_SCORE_NAME_LENGTH 16
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
@@ -50,22 +51,17 @@ SND_MAX
 enum gameState
 {
 HIGHSCORESCREEN,
-GAMESCREEN,
-ENTERHIGHSCORESCREEN
+GAMESCREEN
 };
 
 enum gameState myGameState;
 
 enum
 {
-	TEXT_LEFT,
-	TEXT_CENTER,
-	TEXT_RIGHT
+TEXT_LEFT,
+TEXT_CENTER,
+TEXT_RIGHT
 };
-
-
-const char* format[] = { "TEXT_LEFT", "TEXT_CENTER", "TEXT_RIGHT" };
-
 
 //Scene textures
 LTexture gDotTexture;
@@ -160,7 +156,7 @@ static Mix_Chunk *sounds[SND_MAX];
 
 void initFonts(void);
 
-void drawText(int x, int y, int r, int g, int b, char *format, ...);
+void drawText(int x, int y, int r, int g, int b,int align, char *format, ...);
 
 static void drawHud(void);
 
@@ -170,7 +166,15 @@ static void drawPointsPods(void);
 
 static void addPointsPod(int x, int y);
 
-static void highScoreComparator(const void *a, const void *b);
+void initHighScoreTable(void);
+
+void initHighScores(void);
+
+static void drawHighscores(void);
+
+void addHighscore(int score);
+
+static int highScoreComparator(const void *a, const void *b);
 
 void initGame(void);
 
@@ -180,19 +184,15 @@ void initHighScores(void);
 
 void initHighScoreTable(void);
 
-static void drawHighscores(void);
-
-void addHighscore(int score);
-
-static int highscoreComparator(const void *a, const void *b);
-
-static void drawHighScore(void);
+static void drawHighScores(void);
 
 static SDL_Texture *getTexture(char *name);
 
 static void addTextureToCache(char *name, SDL_Texture *sdlTexture);
 
 void drawScores(void);
+
+static void doNameInput(void);
 
 static void drawNameInput(void);
 

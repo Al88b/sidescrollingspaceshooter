@@ -41,7 +41,7 @@ SDL_Texture* texture;
 	
 Texture       textureHead, *textureTail;
 
-char          inputText[MAX_LINE_LENGTH];
+char inputText[MAX_LINE_LENGTH];
 
 int x;
 int y;

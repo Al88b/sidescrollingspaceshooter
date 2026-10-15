@@ -6,6 +6,7 @@ class Highscores
 {
 public:
 Highscore highscore[NUM_HIGHSCORES];
+
 };
 
 #endif

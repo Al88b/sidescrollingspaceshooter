@@ -6,7 +6,6 @@
 #include "Debris.h"
 #include "Highscores.h"
 #include "Texture.h"
-#include "FunctionDeclarations.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
@@ -31,7 +30,6 @@ static int          enemySpawnTimer;
 static int	    stageResetTimer;
 static int          highscore;
 static Highscore *newHighscore;
-static int 	  lastKnownHighscore;
 static int        cursorBlink;
 
 
@@ -286,9 +284,8 @@ static void logic(void)
 		resetStage();
 		
 		addHighscore(stage.score);
-//std::cout<<"Stage.score = "<<stage.score<<std::endl;
 
-	
+		initHighScores();
 	}
 
 	doExplosions();
@@ -296,8 +293,13 @@ static void logic(void)
 	doDebris();
 
 	doPointsPods();
-	
-	if(++cursorBlink >=FPS)
+
+	if(newHighscore != NULL)
+	{
+	doNameInput();
+	}
+
+	if(++cursorBlink >= FPS)
 	{
 	cursorBlink = 0;
 	}
@@ -464,6 +466,7 @@ static void doBullets(void)
 		prev = b;
 	}
 }
+
 static void fireBullet(void)
 {
 //std::cout<<"fireBullet"<<std::endl;
@@ -504,15 +507,13 @@ static void draw(void)
 
 void drawScores(void)
 {
-{
-drawHighscores();
-}
-}
-
-void drawEnterHighScores(void)
-{
+if(newHighscore!=NULL)
 {
 drawNameInput();
+}
+else
+{
+drawHighscores();
 }
 }
 
@@ -979,8 +980,6 @@ void drawText(int x, int y, int r, int g, int b, int align, char *format, ...)
 	SDL_Rect rect;
 	va_list  args;
 
-	memset(&drawTextBuffer, '\0', sizeof(drawTextBuffer));
-
 	va_start(args, format);
 	vsprintf(drawTextBuffer, format, args);
 	va_end(args);
@@ -1018,19 +1017,22 @@ void drawText(int x, int y, int r, int g, int b, int align, char *format, ...)
 		}
 	}
 }
+
 static void drawHud(void)
 {
-	drawText(10, 10, 255, 255, 255, TEXT_LEFT, "SCORE: %03d", stage.score);
+drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
 
-	if (stage.score < highscores.highscore[0].score)
-	{
-		drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, "HIGHSCORE: %03d", highscore);
-	}
-	else
-	{
-		drawText(SCREEN_WIDTH - 10, 10, 0, 255, 0, TEXT_RIGHT, "HIGHSCORE: %03d", stage.score);
-	}
+if(stage.score > 0 && stage.score == highscore)
+{
+drawText(1020, 10, 0, 255, 0, "HIGHSCORE: &03d", highscore);
 }
+else
+{
+drawText(1020, 10, 0, 255, 255, "HIGHSCORE: &03d", highscore);
+}
+
+}
+
 static void doPointsPods(void)
 {
 	Laser *e, *prev;
@@ -1085,7 +1087,7 @@ static void doPointsPods(void)
 			}
 
 			prev->next = e->next;
-			delete e;
+			free(e);
 			e = prev;
 		}
 
@@ -1129,32 +1131,22 @@ void initHighScores(void)
 dot.delegate.logic = logic;
 dot.delegate.draw = draw;
 dot.delegate.drawScores = drawScores;
-dot.delegate.drawEnterHighScores = drawEnterHighScores;
 }
 
-
-void initHighScoreTable(void)
+void initHighscoreTable(void)
 {
 	int i;
 
 	for (i = 0; i < NUM_HIGHSCORES; i++)
 	{
 		highscores.highscore[i].score = NUM_HIGHSCORES - i;
+		STRNCPY(highscores.highscore[i].name, "ANONYMOUS", MAX_SCORE_NAME_LENGTH);
 	}
-STRNCPY(highscores.highscore[0].name, "PIGGER", MAX_SCORE_NAME_LENGTH);
-STRNCPY(highscores.highscore[1].name, "SPACCO", MAX_SCORE_NAME_LENGTH);
-STRNCPY(highscores.highscore[2].name, "GFAG", MAX_SCORE_NAME_LENGTH);
-STRNCPY(highscores.highscore[3].name, "PIGO", MAX_SCORE_NAME_LENGTH);
-STRNCPY(highscores.highscore[4].name, "YOUNG RADICAL", MAX_SCORE_NAME_LENGTH);
-STRNCPY(highscores.highscore[5].name, "KRYPTON85", MAX_SCORE_NAME_LENGTH);
-STRNCPY(highscores.highscore[6].name, "SMARTASS", MAX_SCORE_NAME_LENGTH);
-STRNCPY(highscores.highscore[7].name, "GBOX", MAX_SCORE_NAME_LENGTH);
-	
+
 	newHighscore = NULL;
 
 	cursorBlink = 0;
 }
-
 
 void initGame(void)
 {
@@ -1191,11 +1183,12 @@ static void drawHighscores(void)
 	drawText(SCREEN_WIDTH / 2, 600, 255, 255, 255, TEXT_CENTER, "PRESS FIRE TO PLAY!");
 }
 
-
 void addHighscore(int score)
 {
 	Highscore newHighscores[NUM_HIGHSCORES + 1];
 	int       i;
+
+	memset(newHighscores, 0, sizeof(Highscore) * (NUM_HIGHSCORES + 1));
 
 	for (i = 0; i < NUM_HIGHSCORES; i++)
 	{
@@ -1206,7 +1199,7 @@ void addHighscore(int score)
 	newHighscores[NUM_HIGHSCORES].score = score;
 	newHighscores[NUM_HIGHSCORES].recent = 1;
 
-	qsort(newHighscores, NUM_HIGHSCORES + 1, sizeof(Highscore), highscoreComparator);
+	qsort(newHighscores, NUM_HIGHSCORES + 1, sizeof(Highscore), highScoreComparator);
 
 	newHighscore = NULL;
 
@@ -1217,14 +1210,11 @@ void addHighscore(int score)
 		if (highscores.highscore[i].recent)
 		{
 			newHighscore = &highscores.highscore[i];
-			lastKnownHighscore=&highscores.highscore[0].score;
 		}
-		std::cout<<"newHighscores = "<<newHighscore<<std::endl;	
+	}
 }
 
-std::cout<<"1st highscore of array = "<<lastKnownHighscore<<std::endl;
-}
-static int highscoreComparator(const void *a, const void *b)
+static int highScoreComparator(const void *a, const void *b)
 {
     Highscore *h1 = ((Highscore*)a);
     Highscore *h2 = ((Highscore*)b);
@@ -1287,7 +1277,7 @@ static void doNameInput(void)
 	{
 		if (strlen(newHighscore->name) == 0)
 		{
-			STRNCPY(newHighscore->name, "PIGGER", MAX_SCORE_NAME_LENGTH);
+			STRNCPY(newHighscore->name, "ANONYMOUS", MAX_SCORE_NAME_LENGTH);
 		}
 
 		newHighscore = NULL;
