@@ -73,6 +73,7 @@ if(myGameState == GAMESCREEN)
 				if(lives <=0)
 				{
 				myGameState=HIGHSCORESCREEN;
+				addHighscore(stage.score);
 				//std::cout<<"myGameState = "<<myGameState<<std::endl;
 				}
 			//Handle events on queue
@@ -124,7 +125,7 @@ if(myGameState == GAMESCREEN)
 
 else if(myGameState==HIGHSCORESCREEN)
 {
-
+			memset(dot.inputText,0,sizeof(dot.inputText));
 			//Handle events on queue
 			while (SDL_PollEvent(&e))
 	{
@@ -168,8 +169,8 @@ else if(myGameState==HIGHSCORESCREEN)
 
 
         prepareScene();
-
-        dot.delegate.logic();
+	
+	highscoreLogic();
 
         dot.delegate.drawScores();	
 

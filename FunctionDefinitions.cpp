@@ -283,9 +283,9 @@ static void logic(void)
 	{
 		resetStage();
 		
-		addHighscore(stage.score);
+		//addHighscore(stage.score);
 
-		initHighScores();
+		//initHighScores();
 	}
 
 	doExplosions();
@@ -294,6 +294,20 @@ static void logic(void)
 
 	doPointsPods();
 
+	if(newHighscore != NULL)
+	{
+	doNameInput();
+	}
+
+	if(++cursorBlink >= FPS)
+	{
+	cursorBlink = 0;
+	}
+}
+
+void highscoreLogic(void)
+{
+	
 	if(newHighscore != NULL)
 	{
 	doNameInput();

@@ -196,6 +196,8 @@ static void doNameInput(void);
 
 static void drawNameInput(void);
 
+void highscoreLogic(void);
+
 //Starts up SDL and creates window
 bool init();
 
