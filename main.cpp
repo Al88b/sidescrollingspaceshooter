@@ -31,6 +31,7 @@ printf("Failed to initialize!\n");
 
 initGame();
 initHighScores();
+initHighscoreTable();
 
 //Load media
 if(!loadMedia())
@@ -68,7 +69,7 @@ bool quit = false;
 if(myGameState == GAMESCREEN)
 {
 //std::cout<<"state = "<<myGameState<<std::endl;
-
+	
 				if(lives <=0)
 				{
 				myGameState=HIGHSCORESCREEN;
@@ -186,6 +187,7 @@ else if(myGameState==HIGHSCORESCREEN)
 	std::cout<<"lCtrl key pressed!"<<std::endl;
 	myGameState=GAMESCREEN;
 	lives=5;
+	stage.score = 0;
 	}
 
 }

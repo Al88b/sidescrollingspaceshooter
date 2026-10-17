@@ -507,7 +507,7 @@ static void draw(void)
 
 void drawScores(void)
 {
-if(newHighscore!=NULL)
+if(newHighscore != NULL)
 {
 drawNameInput();
 }
@@ -694,7 +694,7 @@ Debris *d;
 	stage.debrisTail = &stage.debrisHead;
 	stage.pointsTail = &stage.pointsHead;
 
-	stage.score = 0;
+
 	
 	initPlayer();
 
@@ -1020,17 +1020,16 @@ void drawText(int x, int y, int r, int g, int b, int align, char *format, ...)
 
 static void drawHud(void)
 {
-drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
+	drawText(10, 10, 255, 255, 255, TEXT_LEFT, "SCORE: %03d", stage.score);
 
-if(stage.score > 0 && stage.score == highscore)
-{
-drawText(1020, 10, 0, 255, 0, "HIGHSCORE: &03d", highscore);
-}
-else
-{
-drawText(1020, 10, 0, 255, 255, "HIGHSCORE: &03d", highscore);
-}
-
+	if (stage.score < highscores.highscore[0].score)
+	{
+		drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, "HIGHSCORE: %03d", highscores.highscore[0].score);
+	}
+	else
+	{
+		drawText(SCREEN_WIDTH - 10, 10, 0, 255, 0, TEXT_RIGHT, "HIGHSCORE: %03d", stage.score);
+	}
 }
 
 static void doPointsPods(void)
@@ -1087,7 +1086,7 @@ static void doPointsPods(void)
 			}
 
 			prev->next = e->next;
-			free(e);
+			delete e;
 			e = prev;
 		}
 
