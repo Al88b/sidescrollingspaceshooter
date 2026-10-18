@@ -228,9 +228,9 @@ else if(myGameState==ENTERHIGHSCORESCREEN)
 
         prepareScene();
 	
-	drawNameInput();
-
 	enterHighscoreLogic();	
+
+	drawNameInput();
 
         presentScene();
 
