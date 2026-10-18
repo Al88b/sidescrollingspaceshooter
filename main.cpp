@@ -177,7 +177,7 @@ else if(myGameState==HIGHSCORESCREEN)
 	}
 	else if(newHighscore != NULL)
 	{
-	myGameState==ENTERHIGHSCORESCREEN;
+	myGameState=ENTERHIGHSCORESCREEN;
 	}
 
 }
@@ -241,7 +241,7 @@ else if(myGameState==ENTERHIGHSCORESCREEN)
 
 
 
-	if(newHighscore==NULL)
+	if(dot.keyboard[SDL_SCANCODE_RETURN])
 	{
 	myGameState=HIGHSCORESCREEN;
 	}
