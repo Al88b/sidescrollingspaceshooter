@@ -293,25 +293,10 @@ static void logic(void)
 	doDebris();
 
 	doPointsPods();
-
-	if(newHighscore != NULL)
-	{
-	doNameInput();
-	}
-
-	if(++cursorBlink >= FPS)
-	{
-	cursorBlink = 0;
-	}
 }
 
 void highscoreLogic(void)
 {
-	
-	if(newHighscore != NULL)
-	{
-	doNameInput();
-	}
 
 	if(++cursorBlink >= FPS)
 	{
@@ -319,6 +304,14 @@ void highscoreLogic(void)
 	}
 }
 
+void enterHighscoreLogic(void)
+{
+	
+	if(++cursorBlink >= FPS)
+	{
+	cursorBlink = 0;
+	}
+}
 
 static void initPlayer()
 {
@@ -1264,6 +1257,7 @@ static void addTextureToCache(char *name, SDL_Texture *sdlTexture)
 
 static void doNameInput(void)
 {
+std::cout<<"In doNameInput() "<<std::endl;
 	int  i, n;
 	char c;
 
