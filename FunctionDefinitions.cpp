@@ -306,7 +306,8 @@ void highscoreLogic(void)
 
 void enterHighscoreLogic(void)
 {
-	
+	doNameInput();
+
 	if(++cursorBlink >= FPS)
 	{
 	cursorBlink = 0;
