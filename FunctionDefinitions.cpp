@@ -344,7 +344,6 @@ void logicScores(void)
 {
 
 }
-}
 
 static void initPlayer()
 {
