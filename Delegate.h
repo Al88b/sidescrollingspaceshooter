@@ -7,6 +7,9 @@ public:
 void (*logic)(void);
 void (*draw)(void);
 void (*drawScores)(void);
+void (*logicTitle)(void);
+void (*logicScores)(void);
+void (*drawTitle)(void);
 };
 
 #endif

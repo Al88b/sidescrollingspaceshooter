@@ -32,6 +32,7 @@ printf("Failed to initialize!\n");
 initGame();
 initHighScores();
 initHighscoreTable();
+initTitle();
 
 //Load media
 if(!loadMedia())
@@ -66,7 +67,57 @@ bool quit = false;
 		while(!quit)
 		{
 
-if(myGameState == GAMESCREEN)
+if(myGameState == TITLESCREEN)
+{
+//std::cout<<"state = "<<myGameState<<std::endl;
+	
+			//Handle events on queue
+			while(SDL_PollEvent(&e) != 0)
+			{
+				//User requests quit
+				if(e.type == SDL_QUIT)
+				{
+					quit = true;
+				}
+
+				//Handle input for the dot
+				dot.handleEvent(e);
+
+			}
+
+			//Scroll background
+			--scrollingOffset;
+			if(scrollingOffset < -gBGTexture.getWidth())
+			{
+				scrollingOffset = 0;
+			}
+
+			//Clear screen
+			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			SDL_RenderClear(gRenderer);
+
+			//Render background
+			gBGTexture.render(scrollingOffset, 0);
+			gBGTexture.render(scrollingOffset + gBGTexture.getWidth(), 0);
+
+		
+
+			
+        prepareScene();
+
+        dot.delegate.logicTitle();
+
+        dot.delegate.drawTitle();	
+
+        presentScene();
+
+        capFrameRate(&then, &remainder);
+
+			//Update screen
+			SDL_RenderPresent(gRenderer);
+		
+			}
+else if(myGameState == GAMESCREEN)
 {
 //std::cout<<"state = "<<myGameState<<std::endl;
 	
@@ -157,6 +208,8 @@ else if(myGameState==HIGHSCORESCREEN)
 
         prepareScene();
 
+	//dot.delegate.logicScores();
+
         dot.delegate.drawScores();	
 
         presentScene();
@@ -228,23 +281,23 @@ else if(myGameState==ENTERHIGHSCORESCREEN)
 
         prepareScene();
 	
-	enterHighscoreLogic();	
+	enterHighscoreLogic();
 
+	if(newHighscore != NULL)
+	{
 	drawNameInput();
-
+	}
+	else
+	{
+	myGameState=HIGHSCORESCREEN;
+	}
+	
         presentScene();
 
         capFrameRate(&then, &remainder);
 
 			//Update screen
 			SDL_RenderPresent(gRenderer);
-
-
-
-	if(dot.keyboard[SDL_SCANCODE_RETURN])
-	{
-	myGameState=HIGHSCORESCREEN;
-	}
 
 }
 

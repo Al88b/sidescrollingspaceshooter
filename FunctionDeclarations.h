@@ -50,8 +50,10 @@ SND_MAX
 
 enum gameState
 {
+TITLESCREEN,
 HIGHSCORESCREEN,
-GAMESCREEN
+GAMESCREEN,
+ENTERHIGHSCORESCREEN
 };
 
 enum gameState myGameState;
@@ -197,6 +199,18 @@ static void doNameInput(void);
 static void drawNameInput(void);
 
 void highscoreLogic(void);
+
+void enterHighscoreLogic(void);
+
+void initTitle(void);
+
+static void logicTitle(void);
+
+static void drawTitle(void);
+
+void drawLogo(void);
+
+void logicScores(void);
 
 //Starts up SDL and creates window
 bool init();

@@ -17,6 +17,7 @@ Dot dot;
 Laser laser;
 Stage stage;
 Highscores highscores;
+
 static Laser      *player;
 static SDL_Texture *bulletTexture;
 static SDL_Texture *alienBulletTexture;
@@ -25,12 +26,17 @@ static SDL_Texture *playerTexture;
 static SDL_Texture *explosionTexture;
 static SDL_Texture *fontTexture;
 static SDL_Texture *pointsTexture;
+static SDL_Texture *sdl2Texture;
+static SDL_Texture *shooterTexture;
+
 static char         drawTextBuffer[MAX_LINE_LENGTH];
 static int          enemySpawnTimer;
 static int	    stageResetTimer;
 static int          highscore;
 static Highscore *newHighscore;
 static int        cursorBlink;
+static int          reveal = 0;
+static int        timeout;
 
 
 int lives = 5;
@@ -314,6 +320,32 @@ void enterHighscoreLogic(void)
 	}
 }
 
+void logicTitle(void)
+{
+
+if(reveal < SCREEN_HEIGHT)
+{
+reveal++;
+}
+
+if(--timeout<=0)
+{
+myGameState=HIGHSCORESCREEN;
+}
+
+if(dot.keyboard[SDL_SCANCODE_LCTRL])
+{
+myGameState=GAMESCREEN;
+}
+
+}
+
+void logicScores(void)
+{
+
+}
+}
+
 static void initPlayer()
 {
 //std::cout<<"initPlayer!"<<std::endl;
@@ -374,7 +406,7 @@ static void spawnEnemies(void)
 
 	if (--enemySpawnTimer <= 0)
 	{
-		enemy = new Laser();;
+		enemy = new Laser();
 		stage.fighterTail->next = enemy;
 		stage.fighterTail = enemy;
 
@@ -384,6 +416,8 @@ static void spawnEnemies(void)
 		SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
 
 		enemy->dx = -(2 + (rand() % 4));
+		enemy->dy = -100 + (rand() % 200);
+		enemy->dy /= 100;
 
 		enemy->side = SIDE_ALIEN;
 		enemy->health = 1;
@@ -523,6 +557,17 @@ else
 {
 drawHighscores();
 }
+}
+
+void drawTitle(void)
+{
+drawLogo();
+
+if(timeout % 40 < 20)
+{
+drawText(SCREEN_WIDTH / 2, 600, 255, 255, 255, TEXT_CENTER, "PRESS FIRE TO PLAY!");
+}
+
 }
 
 //static void drawPlayer(void)
@@ -718,13 +763,20 @@ static void doEnemies(void)
 
 	for (e = stage.fighterHead.next; e != NULL; e = e->next)
 	{
-		if (e != player && player != NULL && --e->reload <= 0)
+		if (e != player)
 		{
-			fireAlienBullet(e);
-			playSound(SND_PLAYER_FIRE, CH_PLAYER);
+			e->y = MIN(MAX(e->y, 0), SCREEN_HEIGHT - e->h);
+
+			if (player != NULL && --e->reload <= 0)
+			{
+				fireAlienBullet(e);
+
+				playSound(SND_ALIEN_FIRE, CH_ALIEN_FIRE);
+			}
 		}
 	}
 }
+
 
 static void fireAlienBullet(Laser *e)
 {
@@ -1129,15 +1181,20 @@ static void drawPointsPods(void)
 
 	for (e = stage.pointsHead.next; e != NULL; e = e->next)
 	{
-		blit(e->texture, e->x, e->y);
+		if (e->health > (FPS * 2) || e->health % 12 < 6)
+		{
+			blit(e->texture, e->x, e->y);
+		}
 	}
 }
+
 
 void initHighScores(void)
 {
 dot.delegate.logic = logic;
 dot.delegate.draw = draw;
 dot.delegate.drawScores = drawScores;
+dot.delegate.logicScores = logicScores;
 }
 
 void initHighscoreTable(void)
@@ -1314,6 +1371,36 @@ static void drawNameInput(void)
 	}
 
 	drawText(SCREEN_WIDTH / 2, 625, 255, 255, 255, TEXT_CENTER, "PRESS RETURN WHEN FINISHED");
+}
+
+void initTitle(void)
+{
+dot.delegate.logicTitle = logicTitle;
+dot.delegate.drawTitle = drawTitle;
+
+sdl2Texture = loadTexture("sdl2.png");
+shooterTexture = loadTexture("shooter.png");
+
+timeout = FPS * 5;
+
+}
+
+void drawLogo(void)
+{
+SDL_Rect r;
+
+r.x = 0;
+r.y = 0;
+
+SDL_QueryTexture(sdl2Texture,NULL,NULL,&r.w,&r.h);
+
+r.h = MIN(reveal,r.h);
+
+blitRect(sdl2Texture,&r,(SCREEN_WIDTH/2)-(r.w/2),100);
+
+SDL_QueryTexture(shooterTexture,NULL,NULL,&r.w,&r.h);
+
+blitRect(shooterTexture,&r,(SCREEN_WIDTH/2)-(r.w/2),250);
 }
 
 static void capFrameRate(long *then, float *remainder)
