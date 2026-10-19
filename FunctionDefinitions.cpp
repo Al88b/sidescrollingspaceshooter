@@ -331,6 +331,7 @@ reveal++;
 if(--timeout<=0)
 {
 myGameState=HIGHSCORESCREEN;
+timeout = FPS * 5;
 }
 
 if(dot.keyboard[SDL_SCANCODE_LCTRL])
@@ -342,7 +343,12 @@ myGameState=GAMESCREEN;
 
 void logicScores(void)
 {
-
+if(timeout<=0)
+{
+myGameState=TITLESCREEN;
+timeout = FPS * 5;
+reveal = 0;
+}
 }
 
 static void initPlayer()

@@ -208,7 +208,7 @@ else if(myGameState==HIGHSCORESCREEN)
 
         prepareScene();
 
-	//dot.delegate.logicScores();
+	dot.delegate.logicScores();
 
         dot.delegate.drawScores();	
 
@@ -290,6 +290,7 @@ else if(myGameState==ENTERHIGHSCORESCREEN)
 	else
 	{
 	myGameState=HIGHSCORESCREEN;
+	timeout = FPS * 5;
 	}
 	
         presentScene();
