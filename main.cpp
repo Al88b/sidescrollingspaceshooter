@@ -161,6 +161,8 @@ else if(myGameState == GAMESCREEN)
 			
         prepareScene();
 
+	runEnemies();
+
         dot.delegate.logic();
 
         dot.delegate.draw();	

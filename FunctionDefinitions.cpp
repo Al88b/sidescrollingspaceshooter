@@ -43,6 +43,8 @@ int lives = 5;
 
 bool right;
 
+bool makeEnemies = false;
+
 bool init()
 {
 //Initialization flag
@@ -273,6 +275,8 @@ void initStage(void)
 static void logic(void)
 {
 //std::cout<<"logic"<<std::endl;
+	if(makeEnemies==true)
+	{
 	doPlayer();
 
 	doEnemies();
@@ -299,6 +303,11 @@ static void logic(void)
 	doDebris();
 
 	doPointsPods();
+	}
+	else
+	{
+	
+	}
 }
 
 void highscoreLogic(void)
@@ -343,7 +352,7 @@ myGameState=GAMESCREEN;
 
 void logicScores(void)
 {
-if(timeout<=0)
+if(--timeout<=0)
 {
 myGameState=TITLESCREEN;
 timeout = FPS * 5;
@@ -538,6 +547,8 @@ player->reload = 8;
 static void draw(void)
 {
 
+    if(makeEnemies==true)
+    {
     drawBullets();
 
     drawFighters();
@@ -549,6 +560,11 @@ static void draw(void)
     drawHud();
 
     drawPointsPods();
+    }
+    else
+    {
+
+    }
 
 }
 

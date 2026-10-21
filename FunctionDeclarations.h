@@ -212,6 +212,8 @@ void drawLogo(void);
 
 void logicScores(void);
 
+void runEnemies(void);
+
 //Starts up SDL and creates window
 bool init();
 
