@@ -275,10 +275,11 @@ void initStage(void)
 static void logic(void)
 {
 //std::cout<<"logic"<<std::endl;
+	
+	doPlayer();
+	
 	if(makeEnemies==true)
 	{
-	doPlayer();
-
 	doEnemies();
 
 	doFighters();
@@ -1422,6 +1423,14 @@ blitRect(sdl2Texture,&r,(SCREEN_WIDTH/2)-(r.w/2),100);
 SDL_QueryTexture(shooterTexture,NULL,NULL,&r.w,&r.h);
 
 blitRect(shooterTexture,&r,(SCREEN_WIDTH/2)-(r.w/2),250);
+}
+
+void runEnemies(void)
+{
+SDL_Delay(5000);
+makeEnemies=true;
+SDL_Delay(10000);
+makeEnemies=false;
 }
 
 static void capFrameRate(long *then, float *remainder)
