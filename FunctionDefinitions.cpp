@@ -38,6 +38,7 @@ static int        cursorBlink;
 static int          reveal = 0;
 static int        timeout;
 
+static Uint32 gameStartTicks = 0;
 
 int lives = 5;
 
@@ -278,15 +279,16 @@ static void logic(void)
 	
 	doPlayer();
 	
-	if(makeEnemies==true)
-	{
 	doEnemies();
 
 	doFighters();
 
 	doBullets();
 
+	if(makeEnemies==true)
+	{
 	spawnEnemies();
+	}
 
 	clipPlayer();
 
@@ -304,11 +306,7 @@ static void logic(void)
 	doDebris();
 
 	doPointsPods();
-	}
-	else
-	{
 	
-	}
 }
 
 void highscoreLogic(void)
@@ -548,8 +546,6 @@ player->reload = 8;
 static void draw(void)
 {
 
-    if(makeEnemies==true)
-    {
     drawBullets();
 
     drawFighters();
@@ -561,11 +557,7 @@ static void draw(void)
     drawHud();
 
     drawPointsPods();
-    }
-    else
-    {
-
-    }
+   
 
 }
 
@@ -776,6 +768,8 @@ Debris *d;
 	enemySpawnTimer = 0;
 
 	stageResetTimer = FPS * 2;
+
+	gameStartTicks = 0;
 
 }
 
@@ -1427,10 +1421,9 @@ blitRect(shooterTexture,&r,(SCREEN_WIDTH/2)-(r.w/2),250);
 
 void runEnemies(void)
 {
-SDL_Delay(5000);
-makeEnemies=true;
-SDL_Delay(10000);
-makeEnemies=false;
+if(gameStartTicks == 0)
+   gameStartTicks = SDL_GetTicks();
+makeEnemies = (SDL_GetTicks() - gameStartTicks >= 5000);
 }
 
 static void capFrameRate(long *then, float *remainder)
