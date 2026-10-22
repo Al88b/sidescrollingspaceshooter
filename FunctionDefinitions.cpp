@@ -388,7 +388,7 @@ static void doFighters(void)
 
 		if (e != player && e->x < -e->w)
 		{
-			e->health <= 0;
+			e->health = 0;
 		}
 
 		if (e->health == 0)
@@ -1423,7 +1423,20 @@ void runEnemies(void)
 {
 if(gameStartTicks == 0)
    gameStartTicks = SDL_GetTicks();
-makeEnemies = (SDL_GetTicks() - gameStartTicks >= 5000);
+
+Uint32 elapsed = SDL_GetTicks() - gameStartTicks;
+
+
+makeEnemies = (elapsed >= 5000 && elapsed < 15000);
+
+if(elapsed >= 15000)
+{
+	for(Laser *e = stage.fighterHead.next ; e != NULL ; e = e->next)
+	{
+	if(e != player)
+		e->health = 0;
+	}
+}
 }
 
 static void capFrameRate(long *then, float *remainder)
