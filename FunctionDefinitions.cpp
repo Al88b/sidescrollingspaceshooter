@@ -46,6 +46,23 @@ bool right;
 
 bool makeEnemies = false;
 
+// ---- Boss ----
+#define BOSS_HEALTH     30   // player hits needed to destroy it
+#define BOSS_SPEED_X    3
+#define BOSS_SPEED_Y    4
+#define BOSS_SPAWN_MS   15000
+
+static Laser       *boss = NULL;
+static SDL_Texture *bossTexture;
+static bool         bossSpawned = false;
+static bool         bossEntering = false;
+static int          bossTurnTimer = 0;
+
+static void spawnBoss(void);
+static void doBoss(void);
+static void drawBoss(void);
+static int  bulletHitBoss(Laser *b);
+
 bool init()
 {
 //Initialization flag
@@ -270,6 +287,8 @@ void initStage(void)
 
     pointsTexture = loadTexture("points.png");
 
+    bossTexture = loadTexture("boss.png");
+
     resetStage();
 }
 
@@ -282,6 +301,8 @@ static void logic(void)
 	doEnemies();
 
 	doFighters();
+
+	doBoss();
 
 	doBullets();
 
@@ -506,7 +527,7 @@ static void doBullets(void)
 		b->x += b->dx;
 		b->y += b->dy;
 
-		if (bulletHitFighter(b) || b->x < -b->w || b->y < -b->h || b->x > SCREEN_WIDTH || b->y > SCREEN_HEIGHT)
+		if (bulletHitFighter(b) || bulletHitBoss(b) || b->x < -b->w || b->y < -b->h || b->x > SCREEN_WIDTH || b->y > SCREEN_HEIGHT)
 		{
 			if (b == stage.bulletTail)
 			{
@@ -549,6 +570,8 @@ static void draw(void)
     drawBullets();
 
     drawFighters();
+
+    drawBoss();
 
     drawDebris();
 
@@ -763,6 +786,13 @@ Debris *d;
 
 
 	
+	if (boss != NULL)
+	{
+		delete boss;
+		boss = NULL;
+	}
+	bossSpawned = false;
+
 	initPlayer();
 
 	enemySpawnTimer = 0;
@@ -1429,6 +1459,12 @@ Uint32 elapsed = SDL_GetTicks() - gameStartTicks;
 
 makeEnemies = (elapsed >= 5000 && elapsed < 15000);
 
+if(elapsed >= BOSS_SPAWN_MS && !bossSpawned)
+{
+	spawnBoss();
+	bossSpawned = true;
+}
+
 if(elapsed >= 15000)
 {
 	for(Laser *e = stage.fighterHead.next ; e != NULL ; e = e->next)
@@ -1472,4 +1508,133 @@ void cleanup(void)
 	SDL_DestroyWindow(dot.window);
 
 	SDL_Quit();
+}
+
+// ===================== BOSS =====================
+
+static void spawnBoss(void)
+{
+	boss = new Laser();
+	boss->texture = bossTexture;
+	SDL_QueryTexture(boss->texture, NULL, NULL, &boss->w, &boss->h);
+
+	// Start just off the right edge, vertically centred
+	boss->x = SCREEN_WIDTH;
+	boss->y = (SCREEN_HEIGHT / 2) - (boss->h / 2);
+
+	// Fly in from the right first
+	boss->dx = -BOSS_SPEED_X;
+	boss->dy = 0;
+	bossEntering = true;
+
+	boss->health = BOSS_HEALTH;
+	boss->side = SIDE_ALIEN;
+	boss->reload = FPS * 2;
+	boss->next = NULL;
+}
+
+static void doBoss(void)
+{
+	if (boss == NULL)
+		return;
+
+	boss->x += boss->dx;
+	boss->y += boss->dy;
+
+	// The strafing area: right half of the screen
+	int minX = SCREEN_WIDTH / 2;
+	int maxX = SCREEN_WIDTH - boss->w;
+	int minY = 0;
+	int maxY = SCREEN_HEIGHT - boss->h;
+
+	if (bossEntering)
+	{
+		// Once fully on screen, start strafing
+		if (boss->x <= maxX - 50)
+		{
+			bossEntering = false;
+			boss->dx = (rand() % 2) ? BOSS_SPEED_X : -BOSS_SPEED_X;
+			boss->dy = (rand() % 2) ? BOSS_SPEED_Y : -BOSS_SPEED_Y;
+			bossTurnTimer = FPS + rand() % (FPS * 2);
+		}
+		return;
+	}
+
+	// Bounce off the edges of the strafing area (left/right and up/down)
+	if (boss->x < minX) { boss->x = minX; boss->dx = BOSS_SPEED_X; }
+	if (boss->x > maxX) { boss->x = maxX; boss->dx = -BOSS_SPEED_X; }
+	if (boss->y < minY) { boss->y = minY; boss->dy = BOSS_SPEED_Y; }
+	if (boss->y > maxY) { boss->y = maxY; boss->dy = -BOSS_SPEED_Y; }
+
+	// Every 1-3 seconds randomly flip direction so it's less predictable
+	if (--bossTurnTimer <= 0)
+	{
+		if (rand() % 2) boss->dx = -boss->dx;
+		if (rand() % 2) boss->dy = -boss->dy;
+		bossTurnTimer = FPS + rand() % (FPS * 2);
+	}
+
+	// Shoot at the player (delete this block if you don't want it to fire)
+	if (player != NULL && --boss->reload <= 0)
+	{
+		fireAlienBullet(boss);
+		playSound(SND_ALIEN_FIRE, CH_ALIEN_FIRE);
+		boss->reload = FPS / 2 + rand() % FPS;
+	}
+
+	// Ramming the boss kills the player
+	if (player != NULL && player->health > 0 &&
+	    collision(player->x, player->y, player->w, player->h,
+	              boss->x, boss->y, boss->w, boss->h))
+	{
+		player->health = 0;
+		addExplosions(player->x, player->y, 32);
+		playSound(SND_PLAYER_DIE, CH_PLAYER);
+		lives--;
+	}
+}
+
+static int bulletHitBoss(Laser *b)
+{
+	if (boss == NULL || b->side != SIDE_PLAYER)
+		return 0;
+
+	if (!collision(b->x, b->y, b->w, b->h, boss->x, boss->y, boss->w, boss->h))
+		return 0;
+
+	b->health = 0;
+	boss->health--;
+	addExplosions(b->x, b->y, 4);   // small "hit" spark
+
+	if (boss->health <= 0)
+	{
+		addExplosions(boss->x + boss->w / 2, boss->y + boss->h / 2, 96);
+		playSound(SND_ALIEN_DIE, CH_ANY);
+		addPointsPod(boss->x + boss->w / 2, boss->y + boss->h / 2);
+		stage.score += 10;
+		highscore = MAX(stage.score, highscore);
+
+		delete boss;
+		boss = NULL;
+	}
+
+	return 1;
+}
+
+static void drawBoss(void)
+{
+	if (boss == NULL)
+		return;
+
+	blit(boss->texture, boss->x, boss->y);
+
+	// Health bar above the boss
+	SDL_Rect back = { (int)boss->x, (int)boss->y - 12, boss->w, 6 };
+	SDL_Rect front = back;
+	front.w = boss->w * boss->health / BOSS_HEALTH;
+
+	SDL_SetRenderDrawColor(gRenderer, 80, 0, 0, 255);
+	SDL_RenderFillRect(gRenderer, &back);
+	SDL_SetRenderDrawColor(gRenderer, 255, 40, 40, 255);
+	SDL_RenderFillRect(gRenderer, &front);
 }
