@@ -223,12 +223,9 @@ else if(myGameState==HIGHSCORESCREEN)
 
 
 
-	if(dot.keyboard[SDL_SCANCODE_LCTRL])
+	if(inputFire())
 	{
-	std::cout<<"lCtrl key pressed!"<<std::endl;
-	myGameState=GAMESCREEN;
-	lives=5;
-	stage.score = 0;
+	startNewGame();
 	}
 	else if(newHighscore != NULL)
 	{
@@ -254,6 +251,11 @@ else if(myGameState==ENTERHIGHSCORESCREEN)
 
 			case SDL_KEYUP:
 				doKeyUp(&e.key);
+				break;
+
+			case SDL_CONTROLLERDEVICEADDED:
+			case SDL_CONTROLLERDEVICEREMOVED:
+				handleControllerEvent(e);
 				break;
 
 			case SDL_TEXTINPUT:

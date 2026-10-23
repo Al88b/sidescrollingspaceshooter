@@ -214,6 +214,22 @@ void logicScores(void);
 
 void runEnemies(void);
 
+// Joypad / game controller support (works alongside the keyboard)
+#define JOY_DEADZONE 8000
+
+void openController(void);
+void closeController(void);
+void handleControllerEvent(SDL_Event& e);
+
+bool inputUp(void);
+bool inputDown(void);
+bool inputLeft(void);
+bool inputRight(void);
+bool inputFire(void);
+bool inputConfirm(void);
+
+void startNewGame(void);
+
 //Starts up SDL and creates window
 bool init();
 

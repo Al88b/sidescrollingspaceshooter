@@ -50,7 +50,11 @@ bool makeEnemies = false;
 #define BOSS_HEALTH     30   // player hits needed to destroy it
 #define BOSS_SPEED_X    3
 #define BOSS_SPEED_Y    4
-#define BOSS_SPAWN_MS   15000
+#define BOSS_SPAWN_MS   20000
+
+static int winTimer = 0;
+static int fireLock = 0;
+static void winGame(void);
 
 static Laser       *boss = NULL;
 static SDL_Texture *bossTexture;
@@ -69,13 +73,15 @@ bool init()
 bool success = true;
 
 //Initialize SDL
-if(SDL_Init(SDL_INIT_VIDEO) < 0)
+if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
 {
 	printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
 	success = false;
 }
 else
 {
+	openController();
+
 	//Set texture filtering to linear
 	if(!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
 	{
@@ -195,6 +201,8 @@ SDL_DestroyWindow(gWindow);
 gWindow = NULL;
 gRenderer = NULL;
 
+closeController();
+
 //Quit SDL subsystems
 IMG_Quit();
 SDL_Quit();
@@ -295,7 +303,15 @@ void initStage(void)
 static void logic(void)
 {
 //std::cout<<"logic"<<std::endl;
-	
+	if(winTimer > 0)
+	{
+		doExplosions();
+		doDebris();
+		if(--winTimer <= 0)
+		winGame();
+		return;
+	}	
+
 	doPlayer();
 	
 	doEnemies();
@@ -363,21 +379,26 @@ myGameState=HIGHSCORESCREEN;
 timeout = FPS * 5;
 }
 
-if(dot.keyboard[SDL_SCANCODE_LCTRL])
+if(fireLock > 0)
 {
-myGameState=GAMESCREEN;
+fireLock--;
 }
-
+else if((inputFire()) || (dot.keyboard[SDL_SCANCODE_LCTRL]))
+{
+startNewGame();
+}
 }
 
 void logicScores(void)
 {
+
 if(--timeout<=0)
 {
 myGameState=TITLESCREEN;
 timeout = FPS * 5;
 reveal = 0;
 }
+
 }
 
 static void initPlayer()
@@ -487,27 +508,27 @@ static void doPlayer(void)
 			player->reload--;
 		}
 
-		if (dot.keyboard[SDL_SCANCODE_UP])
+		if (inputUp())
 		{
 			player->dy = -PLAYER_SPEED;
 		}
 
-		if (dot.keyboard[SDL_SCANCODE_DOWN])
+		if (inputDown())
 		{
 			player->dy = PLAYER_SPEED;
 		}
 
-		if (dot.keyboard[SDL_SCANCODE_LEFT])
+		if (inputLeft())
 		{
 			player->dx = -PLAYER_SPEED;
 		}
 
-		if (dot.keyboard[SDL_SCANCODE_RIGHT])
+		if (inputRight())
 		{
 			player->dx = PLAYER_SPEED;
 		}
 
-		if (dot.keyboard[SDL_SCANCODE_LCTRL] && player->reload <= 0)
+		if (inputFire() && player->reload <= 0)
 		{
 			fireBullet();
 			playSound(SND_PLAYER_FIRE, CH_PLAYER);
@@ -578,6 +599,11 @@ static void draw(void)
     drawExplosions();
 
     drawHud();
+
+    if(winTimer > 0)
+    {
+    drawText(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - GLYPH_HEIGHT / 2, 255, 255, 0, TEXT_CENTER, "WINNER!");
+    }
 
     drawPointsPods();
    
@@ -800,6 +826,8 @@ Debris *d;
 	stageResetTimer = FPS * 2;
 
 	gameStartTicks = 0;
+
+	winTimer = 0;
 
 }
 
@@ -1384,7 +1412,7 @@ std::cout<<"In doNameInput() "<<std::endl;
 		dot.keyboard[SDL_SCANCODE_BACKSPACE] = 0;
 	}
 
-	if (dot.keyboard[SDL_SCANCODE_RETURN])
+	if (dot.keyboard[SDL_SCANCODE_RETURN] || inputConfirm())
 	{
 		if (strlen(newHighscore->name) == 0)
 		{
@@ -1616,6 +1644,7 @@ static int bulletHitBoss(Laser *b)
 
 		delete boss;
 		boss = NULL;
+		winTimer = FPS * 3;
 	}
 
 	return 1;
@@ -1637,4 +1666,137 @@ static void drawBoss(void)
 	SDL_RenderFillRect(gRenderer, &back);
 	SDL_SetRenderDrawColor(gRenderer, 255, 40, 40, 255);
 	SDL_RenderFillRect(gRenderer, &front);
+}
+
+
+// ===================== JOYPAD =====================
+// Each input function returns true if EITHER the keyboard OR the
+// controller is pressing it, so both can be used at the same time.
+
+static SDL_GameController *controller = NULL;
+
+void openController(void)
+{
+	if (controller != NULL)
+		return;
+
+	for (int i = 0; i < SDL_NumJoysticks(); i++)
+	{
+		if (SDL_IsGameController(i))
+		{
+			controller = SDL_GameControllerOpen(i);
+			if (controller != NULL)
+			{
+				printf("Controller connected: %s\n", SDL_GameControllerName(controller));
+				return;
+			}
+		}
+	}
+}
+
+void closeController(void)
+{
+	if (controller != NULL)
+	{
+		SDL_GameControllerClose(controller);
+		controller = NULL;
+	}
+}
+
+// Lets you plug in / unplug a pad while the game is running
+void handleControllerEvent(SDL_Event& e)
+{
+	if (e.type == SDL_CONTROLLERDEVICEADDED)
+	{
+		openController();
+	}
+	else if (e.type == SDL_CONTROLLERDEVICEREMOVED && controller != NULL)
+	{
+		SDL_Joystick *joy = SDL_GameControllerGetJoystick(controller);
+		if (SDL_JoystickInstanceID(joy) == e.cdevice.which)
+		{
+			closeController();
+			openController();   // switch to another pad if one is plugged in
+		}
+	}
+}
+
+static bool padButton(SDL_GameControllerButton b)
+{
+	return controller != NULL && SDL_GameControllerGetButton(controller, b);
+}
+
+static int padAxis(SDL_GameControllerAxis a)
+{
+	return controller != NULL ? SDL_GameControllerGetAxis(controller, a) : 0;
+}
+
+bool inputUp(void)
+{
+	return dot.keyboard[SDL_SCANCODE_UP]
+	    || padButton(SDL_CONTROLLER_BUTTON_DPAD_UP)
+	    || padAxis(SDL_CONTROLLER_AXIS_LEFTY) < -JOY_DEADZONE;
+}
+
+bool inputDown(void)
+{
+	return dot.keyboard[SDL_SCANCODE_DOWN]
+	    || padButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+	    || padAxis(SDL_CONTROLLER_AXIS_LEFTY) > JOY_DEADZONE;
+}
+
+bool inputLeft(void)
+{
+	return dot.keyboard[SDL_SCANCODE_LEFT]
+	    || padButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT)
+	    || padAxis(SDL_CONTROLLER_AXIS_LEFTX) < -JOY_DEADZONE;
+}
+
+bool inputRight(void)
+{
+	return dot.keyboard[SDL_SCANCODE_RIGHT]
+	    || padButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
+	    || padAxis(SDL_CONTROLLER_AXIS_LEFTX) > JOY_DEADZONE;
+}
+
+// Fire: Left Ctrl, or A (Xbox) / Cross (PlayStation), or right trigger
+bool inputFire(void)
+{
+	return dot.keyboard[SDL_SCANCODE_LCTRL]
+	    || padButton(SDL_CONTROLLER_BUTTON_A)
+	    || padAxis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT) > JOY_DEADZONE;
+}
+
+// Confirm high-score name: Start button (Return still works on keyboard)
+bool inputConfirm(void)
+{
+	return padButton(SDL_CONTROLLER_BUTTON_START);
+}
+
+static void winGame(void)
+{
+addHighscore(stage.score);
+resetStage();
+
+fireLock = FPS;
+
+if(newHighscore != NULL)
+{
+myGameState=ENTERHIGHSCORESCREEN;
+}
+else
+{
+myGameState = TITLESCREEN;
+timeout = FPS * 5;
+reveal = 0;
+}
+
+}
+
+void startNewGame(void)
+{
+lives = 5;
+stage.score = 0;
+resetStage();
+myGameState = GAMESCREEN;
 }

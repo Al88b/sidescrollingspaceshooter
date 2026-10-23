@@ -19,6 +19,8 @@ mVelY = 0;
 void Dot::handleEvent(SDL_Event& e)
 {
 
+handleControllerEvent(e);
+
 switch(e.type)
 {
 	case SDL_KEYDOWN:
