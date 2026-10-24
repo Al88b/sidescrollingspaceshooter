@@ -602,7 +602,7 @@ static void draw(void)
 
     if(winTimer > 0)
     {
-    drawText(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - GLYPH_HEIGHT / 2, 255, 255, 0, TEXT_CENTER, "WINNER!");
+    drawTextScaled(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - (GLYPH_HEIGHT * 4) / 2, 255, 255, 0, TEXT_CENTER, 4, "WINNER!");
     }
 
     drawPointsPods();
@@ -1150,6 +1150,55 @@ void drawText(int x, int y, int r, int g, int b, int align, char *format, ...)
 			x += GLYPH_WIDTH;
 		}
 	}
+}
+
+void drawTextScaled(int x, int y, int r, int g, int b, int align, int scale, char *format, ...)
+{
+int i, len, c;
+SDL_Rect src, dest;
+va_list args;
+
+va_start(args, format);
+vsprintf(drawTextBuffer, format, args);
+va_end(args);
+
+len = strlen(drawTextBuffer);
+
+switch (align)
+{
+case TEXT_RIGHT:
+x -= len * GLYPH_WIDTH * scale;
+break;
+
+case TEXT_CENTER:
+x -= (len * GLYPH_WIDTH * scale) / 2;
+break;
+}
+
+src.w = GLYPH_WIDTH;
+src.h = GLYPH_HEIGHT;
+src.y = 0;
+
+dest.w = GLYPH_WIDTH * scale;
+dest.h = GLYPH_HEIGHT * scale;
+dest.y = y;
+
+SDL_SetTextureColorMod(fontTexture, r, g, b);
+
+for(i = 0; i < len; i++)
+{
+c = drawTextBuffer[i];
+
+if(c >= ' ' && c <= 'Z')
+{
+src.x = (c - ' ') * GLYPH_WIDTH;
+dest.x = x;
+
+SDL_RenderCopy(gRenderer, fontTexture, &src, &dest);
+
+x += GLYPH_WIDTH * scale;
+}
+}
 }
 
 static void drawHud(void)

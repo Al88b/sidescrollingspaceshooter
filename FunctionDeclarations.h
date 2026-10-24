@@ -214,6 +214,8 @@ void logicScores(void);
 
 void runEnemies(void);
 
+void drawTextScaled(int x, int y, int r, int g, int b, int align, int scale, char *format, ...);
+
 // Joypad / game controller support (works alongside the keyboard)
 #define JOY_DEADZONE 8000
 
