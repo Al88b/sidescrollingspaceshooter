@@ -159,6 +159,7 @@ static Mix_Chunk *sounds[SND_MAX];
 void initFonts(void);
 
 void drawText(int x, int y, int r, int g, int b,int align, char *format, ...);
+void drawSmallText(int x, int y, int r, int g, int b, int align, float scale, const char *text);
 
 static void drawHud(void);
 
@@ -213,8 +214,6 @@ void drawLogo(void);
 void logicScores(void);
 
 void runEnemies(void);
-
-void drawTextScaled(int x, int y, int r, int g, int b, int align, int scale, char *format, ...);
 
 // Joypad / game controller support (works alongside the keyboard)
 #define JOY_DEADZONE 8000

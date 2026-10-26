@@ -12,6 +12,7 @@
 #include <iostream>
 #include <stdbool.h>
 #include <cstdlib>
+#include <cctype>
 
 Dot dot;
 Laser laser;
@@ -602,7 +603,11 @@ static void draw(void)
 
     if(winTimer > 0)
     {
-    drawTextScaled(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - (GLYPH_HEIGHT * 4) / 2, 255, 255, 0, TEXT_CENTER, 4, "WINNER!");
+    drawText(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - GLYPH_HEIGHT / 2, 255, 255, 0, TEXT_CENTER, "WINNER!");
+    int smallY = SCREEN_HEIGHT / 2 + GLYPH_HEIGHT / 2 + 8;
+    int lineGap = (int)(GLYPH_HEIGHT * 0.6f) + 4;
+    drawSmallText(SCREEN_WIDTH / 2, smallY, 255, 255, 255, TEXT_CENTER, 0.6f, "THE NEW WORLD ORDER HAS BEEN SMASHED");
+    drawSmallText(SCREEN_WIDTH / 2, smallY + lineGap, 255, 255, 255, TEXT_CENTER, 0.6f, "PEACE LOVE AND ANARCHY WILL REIGN IN THE SOLAR SYSTEM FOR MILLENEA!"); 
     }
 
     drawPointsPods();
@@ -1152,53 +1157,30 @@ void drawText(int x, int y, int r, int g, int b, int align, char *format, ...)
 	}
 }
 
-void drawTextScaled(int x, int y, int r, int g, int b, int align, int scale, char *format, ...)
+void drawSmallText(int x, int y, int r, int g, int b, int align, float scale, const char *text)
 {
-int i, len, c;
-SDL_Rect src, dest;
-va_list args;
+	int w = (int)(GLYPH_WIDTH * scale);
+	int h = (int)(GLYPH_HEIGHT * scale);
+	int len = strlen(text);
 
-va_start(args, format);
-vsprintf(drawTextBuffer, format, args);
-va_end(args);
+	if (align == TEXT_CENTER) x -= (len * w) / 2;
+	else if (align == TEXT_RIGHT) x -= len * w;
 
-len = strlen(drawTextBuffer);
+	SDL_Rect src = {0, 0, GLYPH_WIDTH, GLYPH_HEIGHT};
+	SDL_Rect dest = {x, y, w, h};
 
-switch (align)
-{
-case TEXT_RIGHT:
-x -= len * GLYPH_WIDTH * scale;
-break;
+	SDL_SetTextureColorMod(fontTexture, r, g, b);
 
-case TEXT_CENTER:
-x -= (len * GLYPH_WIDTH * scale) / 2;
-break;
-}
-
-src.w = GLYPH_WIDTH;
-src.h = GLYPH_HEIGHT;
-src.y = 0;
-
-dest.w = GLYPH_WIDTH * scale;
-dest.h = GLYPH_HEIGHT * scale;
-dest.y = y;
-
-SDL_SetTextureColorMod(fontTexture, r, g, b);
-
-for(i = 0; i < len; i++)
-{
-c = drawTextBuffer[i];
-
-if(c >= ' ' && c <= 'Z')
-{
-src.x = (c - ' ') * GLYPH_WIDTH;
-dest.x = x;
-
-SDL_RenderCopy(gRenderer, fontTexture, &src, &dest);
-
-x += GLYPH_WIDTH * scale;
-}
-}
+	for (int i = 0; i < len; i++)
+	{
+		int c = toupper((unsigned char)text[i]);
+		if (c >= ' ' && c <= 'Z')
+		{
+			src.x = (c - ' ') * GLYPH_WIDTH;
+			SDL_RenderCopy(gRenderer, fontTexture, &src, &dest);
+		}
+		dest.x += w;
+	}
 }
 
 static void drawHud(void)
@@ -1693,7 +1675,7 @@ static int bulletHitBoss(Laser *b)
 
 		delete boss;
 		boss = NULL;
-		winTimer = FPS * 3;
+		winTimer = FPS * 10;
 	}
 
 	return 1;
