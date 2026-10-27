@@ -23,6 +23,8 @@ static Laser      *player;
 static SDL_Texture *bulletTexture;
 static SDL_Texture *alienBulletTexture;
 static SDL_Texture *enemyTexture;
+static SDL_Texture *charlesTexture;
+static SDL_Texture *currentEnemyTexture;
 static SDL_Texture *playerTexture;
 static SDL_Texture *explosionTexture;
 static SDL_Texture *fontTexture;
@@ -51,7 +53,14 @@ bool makeEnemies = false;
 #define BOSS_HEALTH     30   // player hits needed to destroy it
 #define BOSS_SPEED_X    3
 #define BOSS_SPEED_Y    4
-#define BOSS_SPAWN_MS   20000
+#define BOSS_SPAWN_MS   35000
+
+// ---- Wave timings (ms since the game started) ----
+#define WAVE1_START_MS  5000
+#define WAVE1_END_MS    15000
+#define WAVE2_START_MS  (WAVE1_END_MS + 5000)    // 20s: Charles wave
+#define WAVE2_END_MS    (WAVE2_START_MS + 10000) // 30s
+// Boss arrives 5s after wave 2 ends -> BOSS_SPAWN_MS above (35s)
 
 static int winTimer = 0;
 static int fireLock = 0;
@@ -288,6 +297,10 @@ void initStage(void)
 
     enemyTexture = loadTexture("enemy.png");
 
+    charlesTexture = loadTexture("charles.png");
+
+    currentEnemyTexture = enemyTexture;
+
     alienBulletTexture = loadTexture("alienBullet.png");
 
     playerTexture = loadTexture("player.png");
@@ -468,7 +481,7 @@ static void spawnEnemies(void)
 
 		enemy->x = SCREEN_WIDTH;
 		enemy->y = rand() % SCREEN_HEIGHT;
-		enemy->texture = enemyTexture;
+		enemy->texture = currentEnemyTexture;
 		SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
 
 		enemy->dx = -(2 + (rand() % 4));
@@ -1516,7 +1529,14 @@ if(gameStartTicks == 0)
 Uint32 elapsed = SDL_GetTicks() - gameStartTicks;
 
 
-makeEnemies = (elapsed >= 5000 && elapsed < 15000);
+bool wave1 = (elapsed >= WAVE1_START_MS && elapsed < WAVE1_END_MS);
+bool wave2 = (elapsed >= WAVE2_START_MS && elapsed < WAVE2_END_MS);
+
+makeEnemies = wave1 || wave2;
+
+// Wave 1 uses enemy.png, wave 2 uses charles.png. Both fire the same
+// alien bullets because doEnemies() handles every fighter in the list.
+currentEnemyTexture = wave2 ? charlesTexture : enemyTexture;
 
 if(elapsed >= BOSS_SPAWN_MS && !bossSpawned)
 {
@@ -1524,7 +1544,8 @@ if(elapsed >= BOSS_SPAWN_MS && !bossSpawned)
 	bossSpawned = true;
 }
 
-if(elapsed >= 15000)
+// Clear leftover enemies in the gaps after each wave
+if(!makeEnemies && elapsed >= WAVE1_END_MS)
 {
 	for(Laser *e = stage.fighterHead.next ; e != NULL ; e = e->next)
 	{
