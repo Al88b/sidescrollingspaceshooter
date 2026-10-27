@@ -24,6 +24,8 @@ static SDL_Texture *bulletTexture;
 static SDL_Texture *alienBulletTexture;
 static SDL_Texture *enemyTexture;
 static SDL_Texture *charlesTexture;
+static SDL_Texture *jeTexture;
+static SDL_Texture *bushTexture;
 static SDL_Texture *currentEnemyTexture;
 static SDL_Texture *playerTexture;
 static SDL_Texture *explosionTexture;
@@ -53,14 +55,18 @@ bool makeEnemies = false;
 #define BOSS_HEALTH     30   // player hits needed to destroy it
 #define BOSS_SPEED_X    3
 #define BOSS_SPEED_Y    4
-#define BOSS_SPAWN_MS   35000
+#define BOSS_SPAWN_MS   (WAVE4_END_MS + 5000)   // 65s
 
 // ---- Wave timings (ms since the game started) ----
 #define WAVE1_START_MS  5000
 #define WAVE1_END_MS    15000
 #define WAVE2_START_MS  (WAVE1_END_MS + 5000)    // 20s: Charles wave
 #define WAVE2_END_MS    (WAVE2_START_MS + 10000) // 30s
-// Boss arrives 5s after wave 2 ends -> BOSS_SPAWN_MS above (35s)
+#define WAVE3_START_MS  (WAVE2_END_MS + 5000)    // 35s: je wave
+#define WAVE3_END_MS    (WAVE3_START_MS + 10000) // 45s
+#define WAVE4_START_MS  (WAVE3_END_MS + 5000)    // 50s: bush wave
+#define WAVE4_END_MS    (WAVE4_START_MS + 10000) // 60s
+// Boss arrives 5s after wave 4 ends -> BOSS_SPAWN_MS above (65s)
 
 static int winTimer = 0;
 static int fireLock = 0;
@@ -298,6 +304,10 @@ void initStage(void)
     enemyTexture = loadTexture("enemy.png");
 
     charlesTexture = loadTexture("charles.png");
+
+    jeTexture = loadTexture("je.png");
+
+    bushTexture = loadTexture("bush.png");
 
     currentEnemyTexture = enemyTexture;
 
@@ -1531,12 +1541,22 @@ Uint32 elapsed = SDL_GetTicks() - gameStartTicks;
 
 bool wave1 = (elapsed >= WAVE1_START_MS && elapsed < WAVE1_END_MS);
 bool wave2 = (elapsed >= WAVE2_START_MS && elapsed < WAVE2_END_MS);
+bool wave3 = (elapsed >= WAVE3_START_MS && elapsed < WAVE3_END_MS);
+bool wave4 = (elapsed >= WAVE4_START_MS && elapsed < WAVE4_END_MS);
 
-makeEnemies = wave1 || wave2;
+makeEnemies = wave1 || wave2 || wave3 || wave4;
 
-// Wave 1 uses enemy.png, wave 2 uses charles.png. Both fire the same
-// alien bullets because doEnemies() handles every fighter in the list.
-currentEnemyTexture = wave2 ? charlesTexture : enemyTexture;
+// Wave 1: enemy.png, wave 2: charles.png, wave 3: je.png, wave 4: bush.png.
+// All fire alien bullets at the player because doEnemies() handles every
+// fighter in the list.
+if(wave4)
+	currentEnemyTexture = bushTexture;
+else if(wave3)
+	currentEnemyTexture = jeTexture;
+else if(wave2)
+	currentEnemyTexture = charlesTexture;
+else
+	currentEnemyTexture = enemyTexture;
 
 if(elapsed >= BOSS_SPAWN_MS && !bossSpawned)
 {
