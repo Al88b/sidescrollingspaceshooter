@@ -85,7 +85,7 @@ bool right;
 bool makeEnemies = false;
 
 // ---- Boss ----
-#define BOSS_HEALTH     30   // player hits needed to destroy it
+#define BOSS_HEALTH     60   // player hits needed to destroy it
 #define BOSS_SPEED_X    3
 #define BOSS_SPEED_Y    4
 #define BOSS_SPAWN_MS   (WAVE4_END_MS + 5000)   // 65s
