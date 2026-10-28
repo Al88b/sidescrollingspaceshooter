@@ -1272,6 +1272,22 @@ static void drawHud(void)
 {
 	drawText(10, 10, 255, 255, 255, TEXT_LEFT, "SCORE: %03d", stage.score);
 
+	// LIVES: followed by one small player ship per remaining life
+	int livesY = 10 + GLYPH_HEIGHT + 8;
+	drawText(10, livesY, 255, 255, 255, TEXT_LEFT, "LIVES:");
+
+	int shipW = 48;
+	int shipH = 25; // keeps player.png's 112x58 aspect ratio
+	int shipX = 10 + (int)strlen("LIVES:") * GLYPH_WIDTH + 10;
+	int shipY = livesY + (GLYPH_HEIGHT - shipH) / 2;
+	int shown = MIN(MAX(lives, 0), 5);
+
+	for (int i = 0; i < shown; i++)
+	{
+		SDL_Rect dest = { shipX + i * (shipW + 6), shipY, shipW, shipH };
+		SDL_RenderCopy(gRenderer, playerTexture, NULL, &dest);
+	}
+
 	if (stage.score < highscores.highscore[0].score)
 	{
 		drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, "HIGHSCORE: %03d", highscores.highscore[0].score);
