@@ -34,7 +34,7 @@ static SDL_Texture *batTexture;
 #define BAT_FRAME_W  480
 #define BAT_FRAME_H  456
 static const int batFrameY[2] = { 139, 631 };
-#define BAT_SCALE    3
+#define BAT_SCALE    1.5f  // file pixels per screen pixel: smaller = bigger bat
 #define BAT_FLAP_MS  150
 static SDL_Texture *charlesTexture;
 static SDL_Texture *jeTexture;
