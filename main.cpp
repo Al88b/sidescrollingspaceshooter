@@ -125,6 +125,7 @@ else if(myGameState == GAMESCREEN)
 				{
 				myGameState=HIGHSCORESCREEN;
 				addHighscore(stage.score);
+				fireBlockedUntil = SDL_GetTicks() + GAME_OVER_FIRE_LOCK_MS;
 				//std::cout<<"myGameState = "<<myGameState<<std::endl;
 				}
 			//Handle events on queue
