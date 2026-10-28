@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <cstdlib>
 #include <cctype>
+#include <cstdint>
 
 Dot dot;
 Laser laser;
@@ -23,6 +24,14 @@ static Laser      *player;
 static SDL_Texture *bulletTexture;
 static SDL_Texture *alienBulletTexture;
 static SDL_Texture *enemyTexture;
+// TrumpBatWings.png is a two-frame sprite sheet stacked vertically:
+// top half = wings up, bottom half = wings down. Each frame is 480x600 in the
+// file and is drawn scaled down by BAT_SCALE so it fits the screen.
+static SDL_Texture *batTexture;
+#define BAT_FRAME_W  480
+#define BAT_FRAME_H  600
+#define BAT_SCALE    3
+#define BAT_FLAP_MS  150
 static SDL_Texture *charlesTexture;
 static SDL_Texture *jeTexture;
 static SDL_Texture *bushTexture;
@@ -303,13 +312,15 @@ void initStage(void)
 
     enemyTexture = loadTexture("enemy.png");
 
+    batTexture = loadTexture("TrumpBatWings.png");
+
     charlesTexture = loadTexture("charles.png");
 
     jeTexture = loadTexture("je.png");
 
     bushTexture = loadTexture("bush.png");
 
-    currentEnemyTexture = enemyTexture;
+    currentEnemyTexture = batTexture;
 
     alienBulletTexture = loadTexture("alienBullet.png");
 
@@ -492,7 +503,14 @@ static void spawnEnemies(void)
 		enemy->x = SCREEN_WIDTH;
 		enemy->y = rand() % SCREEN_HEIGHT;
 		enemy->texture = currentEnemyTexture;
-		SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+		if(enemy->texture == batTexture)
+		{
+			// Size of one animation frame on screen, not the whole sheet
+			enemy->w = BAT_FRAME_W / BAT_SCALE;
+			enemy->h = BAT_FRAME_H / BAT_SCALE;
+		}
+		else
+			SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
 
 		enemy->dx = -(2 + (rand() % 4));
 		enemy->dy = -100 + (rand() % 200);
@@ -515,7 +533,18 @@ static void drawFighters(void)
 
 	for(e = stage.fighterHead.next ; e != NULL ; e = e->next)
 	{
-	blit(e->texture, e->x, e->y);
+	if(e->texture == batTexture)
+	{
+		// Alternate between the top half (wings up) and bottom half
+		// (wings down). Offset by the enemy's address so they don't all flap
+		// in sync.
+		int frame = ((SDL_GetTicks() + ((uintptr_t)e >> 4)) / BAT_FLAP_MS) % 2;
+		SDL_Rect src = { 0, frame * BAT_FRAME_H, BAT_FRAME_W, BAT_FRAME_H };
+		SDL_Rect dest = { (int)e->x, (int)e->y, e->w, e->h };
+		SDL_RenderCopy(gRenderer, e->texture, &src, &dest);
+	}
+	else
+		blit(e->texture, e->x, e->y);
 	//std::cout<<"for loop drawFighters!"<<std::endl;
 	}
 }
@@ -1099,6 +1128,15 @@ static void addDebris(Laser *e)
 			d->rect.y = y;
 			d->rect.w = w;
 			d->rect.h = h;
+
+			if(e->texture == batTexture)
+			{
+				// Break up the wings-up frame, in texture pixels
+				d->rect.x *= BAT_SCALE;
+				d->rect.y *= BAT_SCALE;
+				d->rect.w *= BAT_SCALE;
+				d->rect.h *= BAT_SCALE;
+			}
 		}
 	}
 }
@@ -1109,7 +1147,13 @@ static void drawDebris(void)
 
 	for (d = stage.debrisHead.next; d != NULL; d = d->next)
 	{
-		blitRect(d->texture, &d->rect, d->x, d->y);
+		if(d->texture == batTexture)
+		{
+			SDL_Rect dest = { (int)d->x, (int)d->y, d->rect.w / BAT_SCALE, d->rect.h / BAT_SCALE };
+			SDL_RenderCopy(gRenderer, d->texture, &d->rect, &dest);
+		}
+		else
+			blitRect(d->texture, &d->rect, d->x, d->y);
 	}
 }
 
@@ -1546,7 +1590,7 @@ bool wave4 = (elapsed >= WAVE4_START_MS && elapsed < WAVE4_END_MS);
 
 makeEnemies = wave1 || wave2 || wave3 || wave4;
 
-// Wave 1: enemy.png, wave 2: charles.png, wave 3: je.png, wave 4: bush.png.
+// Wave 1: TrumpBatWings.png (animated), wave 2: charles.png, wave 3: je.png, wave 4: bush.png.
 // All fire alien bullets at the player because doEnemies() handles every
 // fighter in the list.
 if(wave4)
@@ -1556,7 +1600,7 @@ else if(wave3)
 else if(wave2)
 	currentEnemyTexture = charlesTexture;
 else
-	currentEnemyTexture = enemyTexture;
+	currentEnemyTexture = batTexture;
 
 if(elapsed >= BOSS_SPAWN_MS && !bossSpawned)
 {
