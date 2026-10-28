@@ -28,9 +28,13 @@ static SDL_Texture *enemyTexture;
 // top half = wings up, bottom half = wings down. Each frame is 480x600 in the
 // file and is drawn scaled down by BAT_SCALE so it fits the screen.
 static SDL_Texture *batTexture;
+// The head sits 108px higher in the bottom half than in the top half, so
+// each frame is cut from a different y position to keep the head still.
+// BAT_FRAME_H is tall enough to fit the wings of both frames.
 #define BAT_FRAME_W  480
-#define BAT_FRAME_H  600
-#define BAT_SCALE    3
+#define BAT_FRAME_H  456
+static const int batFrameY[2] = { 139, 631 };
+#define BAT_SCALE    1.5f  // file pixels per screen pixel: smaller = bigger bat
 #define BAT_FLAP_MS  150
 static SDL_Texture *charlesTexture;
 static SDL_Texture *jeTexture;
@@ -539,7 +543,7 @@ static void drawFighters(void)
 		// (wings down). Offset by the enemy's address so they don't all flap
 		// in sync.
 		int frame = ((SDL_GetTicks() + ((uintptr_t)e >> 4)) / BAT_FLAP_MS) % 2;
-		SDL_Rect src = { 0, frame * BAT_FRAME_H, BAT_FRAME_W, BAT_FRAME_H };
+		SDL_Rect src = { 0, batFrameY[frame], BAT_FRAME_W, BAT_FRAME_H };
 		SDL_Rect dest = { (int)e->x, (int)e->y, e->w, e->h };
 		SDL_RenderCopy(gRenderer, e->texture, &src, &dest);
 	}
@@ -1133,7 +1137,7 @@ static void addDebris(Laser *e)
 			{
 				// Break up the wings-up frame, in texture pixels
 				d->rect.x *= BAT_SCALE;
-				d->rect.y *= BAT_SCALE;
+				d->rect.y = d->rect.y * BAT_SCALE + batFrameY[0];
 				d->rect.w *= BAT_SCALE;
 				d->rect.h *= BAT_SCALE;
 			}
@@ -1149,7 +1153,7 @@ static void drawDebris(void)
 	{
 		if(d->texture == batTexture)
 		{
-			SDL_Rect dest = { (int)d->x, (int)d->y, d->rect.w / BAT_SCALE, d->rect.h / BAT_SCALE };
+			SDL_Rect dest = { (int)d->x, (int)d->y, (int)(d->rect.w / BAT_SCALE), (int)(d->rect.h / BAT_SCALE) };
 			SDL_RenderCopy(gRenderer, d->texture, &d->rect, &dest);
 		}
 		else
