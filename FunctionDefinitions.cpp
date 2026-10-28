@@ -1153,7 +1153,7 @@ static void drawDebris(void)
 	{
 		if(d->texture == batTexture)
 		{
-			SDL_Rect dest = { (int)d->x, (int)d->y, d->rect.w / BAT_SCALE, d->rect.h / BAT_SCALE };
+			SDL_Rect dest = { (int)d->x, (int)d->y, (int)(d->rect.w / BAT_SCALE), (int)(d->rect.h / BAT_SCALE) };
 			SDL_RenderCopy(gRenderer, d->texture, &d->rect, &dest);
 		}
 		else
