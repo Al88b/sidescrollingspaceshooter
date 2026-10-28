@@ -103,6 +103,9 @@ bool makeEnemies = false;
 
 static int winTimer = 0;
 static int fireLock = 0;
+// After the last life is lost, fire (Left Ctrl / pad) is ignored until this SDL_GetTicks() time
+Uint32 fireBlockedUntil = 0;
+#define GAME_OVER_FIRE_LOCK_MS 3000
 static void winGame(void);
 
 static Laser       *boss = NULL;
@@ -441,7 +444,7 @@ if(fireLock > 0)
 {
 fireLock--;
 }
-else if((inputFire()) || (dot.keyboard[SDL_SCANCODE_LCTRL]))
+else if(inputFire())
 {
 startNewGame();
 }
@@ -1914,6 +1917,11 @@ bool inputRight(void)
 // Fire: Left Ctrl, or A (Xbox) / Cross (PlayStation), or right trigger
 bool inputFire(void)
 {
+	if (SDL_TICKS_PASSED(SDL_GetTicks(), fireBlockedUntil) == SDL_FALSE)
+	{
+		return false;
+	}
+
 	return dot.keyboard[SDL_SCANCODE_LCTRL]
 	    || padButton(SDL_CONTROLLER_BUTTON_A)
 	    || padAxis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT) > JOY_DEADZONE;
