@@ -24,9 +24,11 @@ static Laser      *player;
 static SDL_Texture *bulletTexture;
 static SDL_Texture *alienBulletTexture;
 static SDL_Texture *enemyTexture;
-// TrumpBatWings.png is a two-frame sprite sheet stacked vertically:
-// top half = wings up, bottom half = wings down. Each frame is 480x600 in the
-// file and is drawn scaled down by BAT_SCALE so it fits the screen.
+// All enemies and the boss use two-frame bat-wing sprite sheets
+// (TrumpBatWings.png, CharlesBatWings.png, JeBatWings.png, BushBatWings.png,
+// BossBatWings.png). Each is 480x1200: top half = wings up, bottom half =
+// wings down, with the head in the same place in every sheet. Frames are drawn
+// scaled down by BAT_SCALE (BOSS_BAT_SCALE for the boss) so they fit the screen.
 static SDL_Texture *batTexture;
 // The head sits 108px higher in the bottom half than in the top half, so
 // each frame is cut from a different y position to keep the head still.
@@ -35,10 +37,28 @@ static SDL_Texture *batTexture;
 #define BAT_FRAME_H  456
 static const int batFrameY[2] = { 139, 631 };
 #define BAT_SCALE    1.5f  // file pixels per screen pixel: smaller = bigger bat
+#define BOSS_BAT_SCALE 1.0f  // the boss is drawn bigger than normal enemies
 #define BAT_FLAP_MS  150
 static SDL_Texture *charlesTexture;
 static SDL_Texture *jeTexture;
 static SDL_Texture *bushTexture;
+static SDL_Texture *bossTexture;
+
+static bool isBatTexture(SDL_Texture *t)
+{
+	return t != NULL && (t == batTexture || t == charlesTexture ||
+	       t == jeTexture || t == bushTexture || t == bossTexture);
+}
+
+// Draw the current wing frame of a bat sprite, scaled to e->w x e->h.
+// Offset by the sprite's address so they don't all flap in sync.
+static void drawBatFrame(Laser *e)
+{
+	int frame = ((SDL_GetTicks() + ((uintptr_t)e >> 4)) / BAT_FLAP_MS) % 2;
+	SDL_Rect src = { 0, batFrameY[frame], BAT_FRAME_W, BAT_FRAME_H };
+	SDL_Rect dest = { (int)e->x, (int)e->y, e->w, e->h };
+	SDL_RenderCopy(gRenderer, e->texture, &src, &dest);
+}
 static SDL_Texture *currentEnemyTexture;
 static SDL_Texture *playerTexture;
 static SDL_Texture *explosionTexture;
@@ -86,7 +106,6 @@ static int fireLock = 0;
 static void winGame(void);
 
 static Laser       *boss = NULL;
-static SDL_Texture *bossTexture;
 static bool         bossSpawned = false;
 static bool         bossEntering = false;
 static int          bossTurnTimer = 0;
@@ -318,11 +337,11 @@ void initStage(void)
 
     batTexture = loadTexture("TrumpBatWings.png");
 
-    charlesTexture = loadTexture("charles.png");
+    charlesTexture = loadTexture("CharlesBatWings.png");
 
-    jeTexture = loadTexture("je.png");
+    jeTexture = loadTexture("JeBatWings.png");
 
-    bushTexture = loadTexture("bush.png");
+    bushTexture = loadTexture("BushBatWings.png");
 
     currentEnemyTexture = batTexture;
 
@@ -334,7 +353,7 @@ void initStage(void)
 
     pointsTexture = loadTexture("points.png");
 
-    bossTexture = loadTexture("boss.png");
+    bossTexture = loadTexture("BossBatWings.png");
 
     resetStage();
 }
@@ -507,7 +526,7 @@ static void spawnEnemies(void)
 		enemy->x = SCREEN_WIDTH;
 		enemy->y = rand() % SCREEN_HEIGHT;
 		enemy->texture = currentEnemyTexture;
-		if(enemy->texture == batTexture)
+		if(isBatTexture(enemy->texture))
 		{
 			// Size of one animation frame on screen, not the whole sheet
 			enemy->w = BAT_FRAME_W / BAT_SCALE;
@@ -537,16 +556,8 @@ static void drawFighters(void)
 
 	for(e = stage.fighterHead.next ; e != NULL ; e = e->next)
 	{
-	if(e->texture == batTexture)
-	{
-		// Alternate between the top half (wings up) and bottom half
-		// (wings down). Offset by the enemy's address so they don't all flap
-		// in sync.
-		int frame = ((SDL_GetTicks() + ((uintptr_t)e >> 4)) / BAT_FLAP_MS) % 2;
-		SDL_Rect src = { 0, batFrameY[frame], BAT_FRAME_W, BAT_FRAME_H };
-		SDL_Rect dest = { (int)e->x, (int)e->y, e->w, e->h };
-		SDL_RenderCopy(gRenderer, e->texture, &src, &dest);
-	}
+	if(isBatTexture(e->texture))
+		drawBatFrame(e);
 	else
 		blit(e->texture, e->x, e->y);
 	//std::cout<<"for loop drawFighters!"<<std::endl;
@@ -1133,7 +1144,7 @@ static void addDebris(Laser *e)
 			d->rect.w = w;
 			d->rect.h = h;
 
-			if(e->texture == batTexture)
+			if(isBatTexture(e->texture))
 			{
 				// Break up the wings-up frame, in texture pixels
 				d->rect.x *= BAT_SCALE;
@@ -1151,7 +1162,7 @@ static void drawDebris(void)
 
 	for (d = stage.debrisHead.next; d != NULL; d = d->next)
 	{
-		if(d->texture == batTexture)
+		if(isBatTexture(d->texture))
 		{
 			SDL_Rect dest = { (int)d->x, (int)d->y, (int)(d->rect.w / BAT_SCALE), (int)(d->rect.h / BAT_SCALE) };
 			SDL_RenderCopy(gRenderer, d->texture, &d->rect, &dest);
@@ -1594,7 +1605,7 @@ bool wave4 = (elapsed >= WAVE4_START_MS && elapsed < WAVE4_END_MS);
 
 makeEnemies = wave1 || wave2 || wave3 || wave4;
 
-// Wave 1: TrumpBatWings.png (animated), wave 2: charles.png, wave 3: je.png, wave 4: bush.png.
+// Wave 1: Trump, wave 2: Charles, wave 3: Je, wave 4: Bush (all bat-wing sheets).
 // All fire alien bullets at the player because doEnemies() handles every
 // fighter in the list.
 if(wave4)
@@ -1664,7 +1675,8 @@ static void spawnBoss(void)
 {
 	boss = new Laser();
 	boss->texture = bossTexture;
-	SDL_QueryTexture(boss->texture, NULL, NULL, &boss->w, &boss->h);
+	boss->w = BAT_FRAME_W / BOSS_BAT_SCALE;
+	boss->h = BAT_FRAME_H / BOSS_BAT_SCALE;
 
 	// Start just off the right edge, vertically centred
 	boss->x = SCREEN_WIDTH;
@@ -1775,7 +1787,7 @@ static void drawBoss(void)
 	if (boss == NULL)
 		return;
 
-	blit(boss->texture, boss->x, boss->y);
+	drawBatFrame(boss);
 
 	// Health bar above the boss
 	SDL_Rect back = { (int)boss->x, (int)boss->y - 12, boss->w, 6 };
