@@ -670,7 +670,10 @@ static void draw(void)
 
     if(winTimer > 0)
     {
-    drawText(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - GLYPH_HEIGHT / 2, 255, 255, 0, TEXT_CENTER, "WINNER!");
+    // Giant red WINNER! across the top: scale 9 makes each letter 162x252,
+    // so the 7 characters span 1134 of the 1280px width. y = 48 keeps it
+    // below the score line.
+    drawSmallText(SCREEN_WIDTH / 2, 48, 255, 0, 0, TEXT_CENTER, 9.0f, "WINNER!");
     int smallY = SCREEN_HEIGHT / 2 + GLYPH_HEIGHT / 2 + 8;
     int lineGap = (int)(GLYPH_HEIGHT * 0.6f) + 4;
     drawSmallText(SCREEN_WIDTH / 2, smallY, 255, 255, 255, TEXT_CENTER, 0.6f, "THE NEW WORLD ORDER HAS BEEN SMASHED");
