@@ -33,6 +33,8 @@ initGame();
 initHighScores();
 initHighscoreTable();
 initTitle();
+loadGameMusic("spaceAnarchy2.ogg");
+loadHighScoreMusic("highScoreMusic.ogg");
 
 //Load media
 if(!loadMedia())
@@ -68,8 +70,9 @@ bool quit = false;
 		{
 
 if(myGameState == TITLESCREEN)
-{//stop game music
-//play highscore music
+{
+Mix_HaltMusic();
+playHighScoreMusic(1);
 //std::cout<<"state = "<<myGameState<<std::endl;
 	
 			//Handle events on queue
@@ -119,8 +122,12 @@ if(myGameState == TITLESCREEN)
 		
 			}
 else if(myGameState == GAMESCREEN)
-//stop highscoremusic
+{
+
+Mix_HaltMusic();
 //playgame music
+playGameMusic(1);
+
 //std::cout<<"state = "<<myGameState<<std::endl;
 	
 				if(lives <=0)

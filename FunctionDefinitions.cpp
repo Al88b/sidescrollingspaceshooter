@@ -137,7 +137,7 @@ else
 	}
 
 	//Create window
-	gWindow = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	gWindow = SDL_CreateWindow("Space Anarchy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if(gWindow == NULL)
 	{
 		printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
@@ -182,7 +182,8 @@ return success;
 void initSounds(void)
 {
 memset(sounds, 0, sizeof(Mix_Chunk*) * SND_MAX);
-music = NULL;
+gameMusic = NULL;
+highScoreMusic = NULL;
 
 loadSounds();
 }
@@ -197,21 +198,36 @@ sounds[SND_POINTS] = Mix_LoadWAV("powerUpSound.ogg");
 }
 
 // make 2 functions for each track
-void loadMusic(char *filename)
+void loadGameMusic(char *filename)
 {
-if(music != NULL)
+if(gameMusic != NULL)
 {
 Mix_HaltMusic();
-Mix_FreeMusic(music);
-music = NULL;
+Mix_FreeMusic(gameMusic);
+gameMusic = NULL;
+}
 }
 
-music = Mix_LoadMUS(filename);
-}
-
-void playMusic(int loop)
+void loadHighScoreMusic(char *filename)
 {
-Mix_PlayMusic(music, (loop) ? -1 : 0);
+if(highScoreMusic != NULL)
+{
+Mix_HaltMusic();
+Mix_FreeMusic(highScoreMusic);
+highScoreMusic = NULL;
+
+highScoreMusic = Mix_LoadMUS(filename);
+}
+}
+
+void playGameMusic(int loop)
+{
+Mix_PlayMusic(gameMusic, (loop) ? -1 : 0);
+}
+
+void playHighScoreMusic(int loop)
+{
+Mix_PlayMusic(highScoreMusic, (loop) ? -1 : 0);
 }
 
 void playSound(int id, int channel)
@@ -978,9 +994,9 @@ static void clipPlayer(void)
 			player->y = 0;
 		}
 
-		if (player->x > SCREEN_WIDTH / 2)
+		if (player->x > SCREEN_WIDTH)
 		{
-			player->x = SCREEN_WIDTH / 2;
+			player->x = SCREEN_WIDTH;
 		}
 
 		if (player->y > SCREEN_HEIGHT - player->h)

@@ -152,7 +152,9 @@ void playSound(int id, int channel);
 
 static void loadSounds(void);
 
-static Mix_Music *music;
+static Mix_Music *gameMusic;
+
+static Mix_Music *highScoreMusic;
 
 static Mix_Chunk *sounds[SND_MAX];
 
