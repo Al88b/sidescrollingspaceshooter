@@ -68,7 +68,8 @@ bool quit = false;
 		{
 
 if(myGameState == TITLESCREEN)
-{
+{//stop game music
+//play highscore music
 //std::cout<<"state = "<<myGameState<<std::endl;
 	
 			//Handle events on queue
@@ -118,14 +119,14 @@ if(myGameState == TITLESCREEN)
 		
 			}
 else if(myGameState == GAMESCREEN)
-{
+//stop highscoremusic
+//playgame music
 //std::cout<<"state = "<<myGameState<<std::endl;
 	
 				if(lives <=0)
 				{
 				myGameState=HIGHSCORESCREEN;
 				addHighscore(stage.score);
-				fireBlockedUntil = SDL_GetTicks() + GAME_OVER_FIRE_LOCK_MS;
 				//std::cout<<"myGameState = "<<myGameState<<std::endl;
 				}
 			//Handle events on queue

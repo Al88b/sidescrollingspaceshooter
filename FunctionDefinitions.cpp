@@ -103,9 +103,6 @@ bool makeEnemies = false;
 
 static int winTimer = 0;
 static int fireLock = 0;
-// After the last life is lost, fire (Left Ctrl / pad) is ignored until this SDL_GetTicks() time
-Uint32 fireBlockedUntil = 0;
-#define GAME_OVER_FIRE_LOCK_MS 3000
 static void winGame(void);
 
 static Laser       *boss = NULL;
@@ -199,6 +196,7 @@ sounds[SND_ALIEN_DIE] = Mix_LoadWAV("10 Guage Shotgun-SoundBible.com-74120584.og
 sounds[SND_POINTS] = Mix_LoadWAV("powerUpSound.ogg");
 }
 
+// make 2 functions for each track
 void loadMusic(char *filename)
 {
 if(music != NULL)
@@ -444,7 +442,7 @@ if(fireLock > 0)
 {
 fireLock--;
 }
-else if(inputFire())
+else if((inputFire()) || (dot.keyboard[SDL_SCANCODE_LCTRL]))
 {
 startNewGame();
 }
@@ -1426,8 +1424,10 @@ void initGame(void)
 {
 initSounds();
 initFonts();
-loadMusic("Mercury.ogg");
-playMusic(1);
+
+//move into gamestate loop
+//loadMusic("Mercury.ogg");
+//playMusic(1);
 }
 
 static void drawHighscores(void)
@@ -1917,11 +1917,6 @@ bool inputRight(void)
 // Fire: Left Ctrl, or A (Xbox) / Cross (PlayStation), or right trigger
 bool inputFire(void)
 {
-	if (SDL_TICKS_PASSED(SDL_GetTicks(), fireBlockedUntil) == SDL_FALSE)
-	{
-		return false;
-	}
-
 	return dot.keyboard[SDL_SCANCODE_LCTRL]
 	    || padButton(SDL_CONTROLLER_BUTTON_A)
 	    || padAxis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT) > JOY_DEADZONE;
