@@ -65,14 +65,22 @@ bool quit = false;
 
 		laser.texture = loadTexture("playerLaser.png");
 
+                Mix_Music *currentMusic = NULL;
 		//While application is running
 		while(!quit)
 		{
+		Mix_Music *wanted = (myGameState == GAMESCREEN) ? gameMusic : highScoreMusic;
+		
+		if(wanted != currentMusic)
+		{
+		Mix_HaltMusic();
+		Mix_PlayMusic(wanted, -1);
+		currentMusic = wanted;
+	
+		}
 
 if(myGameState == TITLESCREEN)
 {
-Mix_HaltMusic();
-playHighScoreMusic(1);
 //std::cout<<"state = "<<myGameState<<std::endl;
 	
 			//Handle events on queue
@@ -123,10 +131,6 @@ playHighScoreMusic(1);
 			}
 else if(myGameState == GAMESCREEN)
 {
-
-Mix_HaltMusic();
-//playgame music
-playGameMusic(1);
 
 //std::cout<<"state = "<<myGameState<<std::endl;
 	
@@ -269,6 +273,11 @@ else if(myGameState==ENTERHIGHSCORESCREEN)
 
 			case SDL_TEXTINPUT:
 				STRNCPY(dot.inputText, e.text.text, MAX_LINE_LENGTH);
+				break;
+				
+			case SDL_MOUSEBUTTONDOWN:
+			if (e.button.button == SDL_BUTTON_LEFT)
+			oskHandlePress(e.button.x, e.button.y);
 				break;
 
 			default:

@@ -206,6 +206,7 @@ Mix_HaltMusic();
 Mix_FreeMusic(gameMusic);
 gameMusic = NULL;
 }
+gameMusic = Mix_LoadMUS(filename);
 }
 
 void loadHighScoreMusic(char *filename)
@@ -215,9 +216,8 @@ if(highScoreMusic != NULL)
 Mix_HaltMusic();
 Mix_FreeMusic(highScoreMusic);
 highScoreMusic = NULL;
-
-highScoreMusic = Mix_LoadMUS(filename);
 }
+highScoreMusic = Mix_LoadMUS(filename);
 }
 
 void playGameMusic(int loop)
@@ -1573,6 +1573,106 @@ std::cout<<"In doNameInput() "<<std::endl;
 
 		newHighscore = NULL;
 	}
+	if (dot.keyboard[SDL_SCANCODE_RETURN] || inputConfirm())
+	{
+		dot.keyboard[SDL_SCANCODE_RETURN] = 0;   // add this
+	
+        }
+}
+
+
+// ---------- On-screen keyboard for highscore entry ----------
+#define OSK_KEY_W  90
+#define OSK_KEY_H  60
+#define OSK_GAP    10
+#define OSK_TOP    300
+
+enum { OSK_CHAR, OSK_SPACE, OSK_DEL, OSK_OK };
+
+struct OskKey { SDL_Rect r; char c; int type; };
+
+static const char *oskRows[] = { "1234567890", "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM" };
+static OskKey oskKeys[64];
+static int oskKeyCount = 0;
+static int oskPressed = -1, oskPressTimer = 0;
+
+static void oskBuild(void)
+{
+    oskKeyCount = 0;
+    for (int row = 0; row < 4; row++)
+    {
+        int len  = strlen(oskRows[row]);
+        int rowW = len * (OSK_KEY_W + OSK_GAP) - OSK_GAP;
+        int x    = (SCREEN_WIDTH - rowW) / 2;
+        int y    = OSK_TOP + row * (OSK_KEY_H + OSK_GAP);
+        for (int i = 0; i < len; i++)
+            oskKeys[oskKeyCount++] = { {x + i * (OSK_KEY_W + OSK_GAP), y, OSK_KEY_W, OSK_KEY_H},
+                                       oskRows[row][i], OSK_CHAR };
+    }
+    // Bottom row: wide SPACE, DEL, OK
+    int y      = OSK_TOP + 4 * (OSK_KEY_H + OSK_GAP);
+    int spaceW = 4 * OSK_KEY_W + 3 * OSK_GAP;
+    int bigW   = 2 * OSK_KEY_W + OSK_GAP;
+    int x      = (SCREEN_WIDTH - (spaceW + 2 * bigW + 2 * OSK_GAP)) / 2;
+    oskKeys[oskKeyCount++] = { {x, y, spaceW, OSK_KEY_H}, ' ', OSK_SPACE };  x += spaceW + OSK_GAP;
+    oskKeys[oskKeyCount++] = { {x, y, bigW,   OSK_KEY_H},  0,  OSK_DEL   };  x += bigW + OSK_GAP;
+    oskKeys[oskKeyCount++] = { {x, y, bigW,   OSK_KEY_H},  0,  OSK_OK    };
+}
+
+// Call this with the tap/click position
+void oskHandlePress(int x, int y)
+{
+    if (oskKeyCount == 0) oskBuild();
+    SDL_Point p = {x, y};
+
+    for (int i = 0; i < oskKeyCount; i++)
+    {
+        OskKey *k = &oskKeys[i];
+        if (!SDL_PointInRect(&p, &k->r)) continue;
+
+        oskPressed = i;
+        oskPressTimer = 8;   // highlight for a few frames
+
+        if (k->type == OSK_DEL)
+            dot.keyboard[SDL_SCANCODE_BACKSPACE] = 1;
+        else if (k->type == OSK_OK)
+            dot.keyboard[SDL_SCANCODE_RETURN] = 1;
+        else
+        {
+            int n = strlen(dot.inputText);
+            if (n < MAX_LINE_LENGTH - 1) { dot.inputText[n] = k->c; dot.inputText[n + 1] = '\0'; }
+        }
+        return;
+    }
+}
+
+static void drawOnScreenKeyboard(void)
+{
+    if (oskKeyCount == 0) oskBuild();
+
+    for (int i = 0; i < oskKeyCount; i++)
+    {
+        OskKey *k = &oskKeys[i];
+
+        if (i == oskPressed && oskPressTimer > 0)
+            SDL_SetRenderDrawColor(gRenderer, 0, 160, 0, 255);
+        else
+            SDL_SetRenderDrawColor(gRenderer, 30, 30, 70, 255);
+        SDL_RenderFillRect(gRenderer, &k->r);
+
+        SDL_SetRenderDrawColor(gRenderer, 128, 255, 128, 255);
+        SDL_RenderDrawRect(gRenderer, &k->r);
+
+        char buf[2] = { k->c, '\0' };
+        const char *label = (k->type == OSK_SPACE) ? "SPACE" :
+                            (k->type == OSK_DEL)   ? "DEL"   :
+                            (k->type == OSK_OK)    ? "OK"    : buf;
+
+        drawText(k->r.x + k->r.w / 2, k->r.y + (k->r.h - GLYPH_HEIGHT) / 2,
+                 255, 255, 255, TEXT_CENTER, (char *)label);
+    }
+
+    if (oskPressTimer > 0) oskPressTimer--;
 }
 
 static void drawNameInput(void)
@@ -1592,11 +1692,15 @@ static void drawNameInput(void)
 		r.w = GLYPH_WIDTH;
 		r.h = GLYPH_HEIGHT;
 
-		SDL_SetRenderDrawColor(dot.renderer, 0, 255, 0, 255);
-		SDL_RenderFillRect(dot.renderer, &r);
+		SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
+		SDL_RenderFillRect(gRenderer, &r);
 	}
 
 	drawText(SCREEN_WIDTH / 2, 625, 255, 255, 255, TEXT_CENTER, "PRESS RETURN WHEN FINISHED");
+	
+		drawOnScreenKeyboard();
+
+	drawText(SCREEN_WIDTH / 2, 670, 255, 255, 255, TEXT_CENTER, "TAP OK OR PRESS RETURN WHEN FINISHED");
 }
 
 void initTitle(void)
