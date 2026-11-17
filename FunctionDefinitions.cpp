@@ -23,6 +23,8 @@ Highscores highscores;
 static Laser      *player;
 static SDL_Texture *bulletTexture;
 static SDL_Texture *alienBulletTexture;
+// The boss fires mh.png (trimmed and scaled down to 180px wide as mhMissile.png)
+static SDL_Texture *bossBulletTexture;
 static SDL_Texture *enemyTexture;
 // All enemies and the boss use two-frame bat-wing sprite sheets
 // (TrumpBatWings.png, CharlesBatWings.png, JeBatWings.png, BushBatWings.png,
@@ -369,6 +371,8 @@ void initStage(void)
     currentEnemyTexture = batTexture;
 
     alienBulletTexture = loadTexture("alienBullet.png");
+
+    bossBulletTexture = loadTexture("mhMissile.png");
 
     playerTexture = loadTexture("player.png");
 	
@@ -962,7 +966,7 @@ static void fireAlienBullet(Laser *e)
 	bullet->x = e->x;
 	bullet->y = e->y;
 	bullet->health = 1;
-	bullet->texture = alienBulletTexture;
+	bullet->texture = (e == boss) ? bossBulletTexture : alienBulletTexture;
 	bullet->side = SIDE_ALIEN;
 	SDL_QueryTexture(bullet->texture, NULL, NULL, &bullet->w, &bullet->h);
 
