@@ -26,7 +26,7 @@ static SDL_Texture *alienBulletTexture;
 static SDL_Texture *enemyTexture;
 // All enemies and the boss use two-frame bat-wing sprite sheets
 // (TrumpBatWings.png, CharlesBatWings.png, JeBatWings.png, BushBatWings.png,
-// BossBatWings.png). Each is 480x1200: top half = wings up, bottom half =
+// RMBatWings.png, BossBatWings.png). Each is 480x1200: top half = wings up, bottom half =
 // wings down, with the head in the same place in every sheet. Frames are drawn
 // scaled down by BAT_SCALE (BOSS_BAT_SCALE for the boss) so they fit the screen.
 static SDL_Texture *batTexture;
@@ -42,12 +42,14 @@ static const int batFrameY[2] = { 139, 631 };
 static SDL_Texture *charlesTexture;
 static SDL_Texture *jeTexture;
 static SDL_Texture *bushTexture;
+static SDL_Texture *rmTexture;
 static SDL_Texture *bossTexture;
 
 static bool isBatTexture(SDL_Texture *t)
 {
 	return t != NULL && (t == batTexture || t == charlesTexture ||
-	       t == jeTexture || t == bushTexture || t == bossTexture);
+	       t == jeTexture || t == bushTexture || t == rmTexture ||
+	       t == bossTexture);
 }
 
 // Draw the current wing frame of a bat sprite, scaled to e->w x e->h.
@@ -88,7 +90,7 @@ bool makeEnemies = false;
 #define BOSS_HEALTH     60   // player hits needed to destroy it
 #define BOSS_SPEED_X    3
 #define BOSS_SPEED_Y    4
-#define BOSS_SPAWN_MS   (WAVE4_END_MS + 5000)   // 65s
+#define BOSS_SPAWN_MS   (WAVE5_END_MS + 5000)   // 80s
 
 // ---- Wave timings (ms since the game started) ----
 #define WAVE1_START_MS  5000
@@ -99,7 +101,9 @@ bool makeEnemies = false;
 #define WAVE3_END_MS    (WAVE3_START_MS + 10000) // 45s
 #define WAVE4_START_MS  (WAVE3_END_MS + 5000)    // 50s: bush wave
 #define WAVE4_END_MS    (WAVE4_START_MS + 10000) // 60s
-// Boss arrives 5s after wave 4 ends -> BOSS_SPAWN_MS above (65s)
+#define WAVE5_START_MS  (WAVE4_END_MS + 5000)    // 65s: RM wave
+#define WAVE5_END_MS    (WAVE5_START_MS + 10000) // 75s
+// Boss arrives 5s after wave 5 ends -> BOSS_SPAWN_MS above (80s)
 
 static int winTimer = 0;
 static int fireLock = 0;
@@ -359,6 +363,8 @@ void initStage(void)
     jeTexture = loadTexture("JeBatWings.png");
 
     bushTexture = loadTexture("BushBatWings.png");
+
+    rmTexture = loadTexture("RMBatWings.png");
 
     currentEnemyTexture = batTexture;
 
@@ -1745,13 +1751,17 @@ bool wave1 = (elapsed >= WAVE1_START_MS && elapsed < WAVE1_END_MS);
 bool wave2 = (elapsed >= WAVE2_START_MS && elapsed < WAVE2_END_MS);
 bool wave3 = (elapsed >= WAVE3_START_MS && elapsed < WAVE3_END_MS);
 bool wave4 = (elapsed >= WAVE4_START_MS && elapsed < WAVE4_END_MS);
+bool wave5 = (elapsed >= WAVE5_START_MS && elapsed < WAVE5_END_MS);
 
-makeEnemies = wave1 || wave2 || wave3 || wave4;
+makeEnemies = wave1 || wave2 || wave3 || wave4 || wave5;
 
-// Wave 1: Trump, wave 2: Charles, wave 3: Je, wave 4: Bush (all bat-wing sheets).
+// Wave 1: Trump, wave 2: Charles, wave 3: Je, wave 4: Bush, wave 5: RM
+// (all bat-wing sheets).
 // All fire alien bullets at the player because doEnemies() handles every
 // fighter in the list.
-if(wave4)
+if(wave5)
+	currentEnemyTexture = rmTexture;
+else if(wave4)
 	currentEnemyTexture = bushTexture;
 else if(wave3)
 	currentEnemyTexture = jeTexture;
