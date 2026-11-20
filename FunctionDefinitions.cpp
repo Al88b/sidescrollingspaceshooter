@@ -205,6 +205,7 @@ sounds[SND_ALIEN_DIE] = Mix_LoadWAV("10 Guage Shotgun-SoundBible.com-74120584.og
 sounds[SND_POINTS] = Mix_LoadWAV("powerUpSound.ogg");
 sounds[SND_DESTROY_ENEMIES] = Mix_LoadWAV("DestroyEnemies.ogg");
 sounds[SND_TRUMP_HEY] = Mix_LoadWAV("TrumpHey.ogg");
+sounds[SND_CHARLES_HEY] = Mix_LoadWAV("CharlesHey.ogg");
 }
 
 // make 2 functions for each track
@@ -783,6 +784,9 @@ static int bulletHitFighter(Laser *b)
 			// Trump enemies (TrumpBatWings.png) shout "Hey" when killed
 			if(e->texture == batTexture)
 				playSound(SND_TRUMP_HEY, CH_ANY);
+			// Charles enemies (CharlesBatWings.png) shout "Hey" when killed
+			else if(e->texture == charlesTexture)
+				playSound(SND_CHARLES_HEY, CH_ANY);
 			addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
 			stage.score++;
 			highscore = MAX(stage.score,highscore);
