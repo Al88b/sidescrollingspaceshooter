@@ -207,6 +207,7 @@ sounds[SND_DESTROY_ENEMIES] = Mix_LoadWAV("DestroyEnemies.ogg");
 sounds[SND_TRUMP_HEY] = Mix_LoadWAV("TrumpHey.ogg");
 sounds[SND_CHARLES_HEY] = Mix_LoadWAV("CharlesHey.ogg");
 sounds[SND_EPSTEIN_GROWL] = Mix_LoadWAV("EpsteinGrowl.ogg");
+sounds[SND_BUSH_HEY] = Mix_LoadWAV("BushHey.ogg");
 }
 
 // make 2 functions for each track
@@ -791,6 +792,9 @@ static int bulletHitFighter(Laser *b)
 			// Epstein enemies (JeBatWings.png) growl when killed
 			else if(e->texture == jeTexture)
 				playSound(SND_EPSTEIN_GROWL, CH_ANY);
+			// Bush enemies (BushBatWings.png) shout "Hey" when killed
+			else if(e->texture == bushTexture)
+				playSound(SND_BUSH_HEY, CH_ANY);
 			addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
 			stage.score++;
 			highscore = MAX(stage.score,highscore);
