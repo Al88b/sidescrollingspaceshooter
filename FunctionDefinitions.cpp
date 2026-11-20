@@ -702,10 +702,10 @@ static void draw(void)
     // below the score line.
     drawSmallText(SCREEN_WIDTH / 2, 48, 255, 0, 0, TEXT_CENTER, 9.0f, "WINNER!");
     int smallY = SCREEN_HEIGHT / 2 + GLYPH_HEIGHT / 2 + 8;
-    int lineGap = (int)(GLYPH_HEIGHT * 0.6f) + 4;
-    drawSmallText(SCREEN_WIDTH / 2, smallY, 255, 255, 255, TEXT_CENTER, 0.6f, "THE NEW WORLD ORDER HAS BEEN SMASHED");
-    drawSmallText(SCREEN_WIDTH / 2, smallY + lineGap, 255, 255, 255, TEXT_CENTER, 0.6f, "PEACE LOVE AND ANARCHY WILL REIGN IN THE SOLAR SYSTEM FOR MILLENEA!");
-    drawSmallText(SCREEN_WIDTH / 2, smallY + 2 * lineGap, 255, 255, 255, TEXT_CENTER, 0.6f, "NOW GO FIGHT THE TALIBAN AND THE RUSSIANS");
+    int lineGap = (int)(GLYPH_HEIGHT * 1.0f) + 4;
+    drawSmallText(SCREEN_WIDTH / 2, smallY, 255, 255, 255, TEXT_CENTER, 1.0f, "THE NEW WORLD ORDER HAS BEEN SMASHED");
+    drawSmallText(SCREEN_WIDTH / 2, smallY + lineGap, 255, 255, 255, TEXT_CENTER, 1.0f, "PEACE LOVE AND ANARCHY WILL REIGN IN THE SOLAR SYSTEM FOR MILLENEA!");
+    drawSmallText(SCREEN_WIDTH / 2, smallY + 2 * lineGap, 255, 255, 255, TEXT_CENTER, 1.0f, "NOW GO FIGHT THE TALIBAN AND THE RUSSIANS");
     }
 
     drawPointsPods();
