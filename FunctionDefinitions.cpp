@@ -82,6 +82,8 @@ static int        timeout;
 
 static Uint32 gameStartTicks = 0;
 
+static bool destroySoundPlayed = false;
+
 int lives = 5;
 
 bool right;
@@ -201,6 +203,7 @@ sounds[SND_ALIEN_FIRE] = Mix_LoadWAV("196914__dpoggioli__lasergun.ogg");
 sounds[SND_PLAYER_DIE] = Mix_LoadWAV("245372__quaker540__hq-explosion.ogg");
 sounds[SND_ALIEN_DIE] = Mix_LoadWAV("10 Guage Shotgun-SoundBible.com-74120584.ogg");
 sounds[SND_POINTS] = Mix_LoadWAV("powerUpSound.ogg");
+sounds[SND_DESTROY_ENEMIES] = Mix_LoadWAV("DestroyEnemies.ogg");
 }
 
 // make 2 functions for each track
@@ -1749,6 +1752,12 @@ if(gameStartTicks == 0)
    gameStartTicks = SDL_GetTicks();
 
 Uint32 elapsed = SDL_GetTicks() - gameStartTicks;
+
+if(!destroySoundPlayed && elapsed >= WAVE1_START_MS - 2000)
+{
+playSound(SND_DESTROY_ENEMIES, CH_ANY);
+destroySoundPlayed = true;
+}
 
 
 bool wave1 = (elapsed >= WAVE1_START_MS && elapsed < WAVE1_END_MS);
