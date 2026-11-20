@@ -936,6 +936,8 @@ Debris *d;
 	stageResetTimer = FPS * 2;
 
 	gameStartTicks = 0;
+	
+	destroySoundPlayed = false;
 
 	winTimer = 0;
 
