@@ -82,6 +82,21 @@ static int        cursorBlink;
 static int          reveal = 0;
 static int        timeout;
 
+// Title screen scrolling message
+#define TITLE_SCROLL_SPEED 3
+static const char *titleScrollText =
+	"PRESS FIRE TO PLAY!          "
+	"PROGRAMMING, GRAPHICS AND SOUND BY KRYPTON 85          "
+	"CONTROL THE SHIP WITH THE ARROW KEYS, LEFT CTRL TO FIRE "
+	"OR PLUG IN A JOYPAD, BUTTON 3 TO FIRE          "
+	"PRESS FIRE TO PLAY!";
+static int        titleScrollX = SCREEN_WIDTH;
+
+static void resetTitleScroll(void)
+{
+	titleScrollX = SCREEN_WIDTH;
+}
+
 static Uint32 gameStartTicks = 0;
 
 static bool destroySoundPlayed = false;
@@ -472,10 +487,15 @@ if(reveal < SCREEN_HEIGHT)
 reveal++;
 }
 
-if(--timeout<=0)
+// Scroll the message right to left; once it has fully left the
+// screen, show the high score table for a while
+titleScrollX -= TITLE_SCROLL_SPEED;
+
+if(titleScrollX < -(int)(strlen(titleScrollText) * GLYPH_WIDTH))
 {
 myGameState=HIGHSCORESCREEN;
 timeout = FPS * 5;
+resetTitleScroll();
 }
 
 if(fireLock > 0)
@@ -496,6 +516,7 @@ if(--timeout<=0)
 myGameState=TITLESCREEN;
 timeout = FPS * 5;
 reveal = 0;
+resetTitleScroll();
 }
 
 }
@@ -743,10 +764,8 @@ void drawTitle(void)
 {
 drawLogo();
 
-if(timeout % 40 < 20)
-{
-drawText(SCREEN_WIDTH / 2, 600, 255, 255, 255, TEXT_CENTER, "PRESS FIRE TO PLAY!");
-}
+// Scrolling message (no flashing)
+drawText(titleScrollX, 600, 255, 255, 255, TEXT_LEFT, (char *)"%s", titleScrollText);
 
 }
 
@@ -1753,6 +1772,7 @@ sdl2Texture = loadTexture("sdl2.png");
 shooterTexture = loadTexture("shooter.png");
 
 timeout = FPS * 5;
+resetTitleScroll();
 
 }
 
@@ -2119,6 +2139,7 @@ else
 myGameState = TITLESCREEN;
 timeout = FPS * 5;
 reveal = 0;
+resetTitleScroll();
 }
 
 }
